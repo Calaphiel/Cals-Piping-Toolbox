@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007bff">
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Pipefitter’s Toolbox</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --fg:#eaeaea; --panel:#0f172a; --edge:#333;
+    --muted:#94a3b8; --accent:#7dd3fc; --brand:#007bff; --brandH:#0056b3;
+    --card:#0d1325;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+  header{background:#111;padding:18px;text-align:center;border-bottom:2px solid var(--edge)}
+  h1{margin:0;font-size:22px}
+  main{max-width:1000px;margin:0 auto;padding:18px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;cursor:pointer;transition:transform .06s ease, border-color .2s}
+  .card:hover{transform:translateY(-1px);border-color:#294476}
+  .icon{font-size:22px;display:inline-block;width:28px}
+  .title{font-size:16px;font-weight:700;margin-left:8px}
+  .desc{color:var(--muted);font-size:13px;margin-top:8px;line-height:1.4}
+
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:16px}
+  label{display:block;margin-top:10px;color:var(--muted);font-size:14px}
+  input, select{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #444;background:#2b2b2b;color:#fff;box-sizing:border-box}
+  button{width:100%;padding:12px;margin-top:14px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-size:16px;cursor:pointer}
+  button:hover{background:var(--brandH)}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{border:1px solid #2f3b5c;padding:8px;text-align:center;font-size:14px}
+  th{background:#132043}
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media(max-width:640px){.results{grid-template-columns:1fr}}
+  .resbox{background:rgba(255,255,255,0.05);padding:12px;border-radius:8px}
+  .label{font-size:13px;color:var(--muted)}
+  .value{font-size:18px;color:var(--accent);margin-top:4px}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.4}
+  .warn{color:#fb923c;font-size:14px;margin:8px 0}
+  .topbar{display:flex;align-items:center;gap:10px;margin:8px 0 16px 0}
+  .back{display:inline-block;padding:8px 10px;border-radius:8px;background:#24324f;color:#cfe6ff;border:1px solid #2b3b62;font-size:13px;cursor:pointer}
+  .hidden{display:none}
+  *{max-width:100%}
+</style>
+</head>
+<body>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("Service Worker registered"));
+}
+</script>
+
+
+<header><h1>Pipefitter’s Toolbox</h1></header>
+
+<main>
+
+  <!-- HOMEPAGE (visible by default) -->
+  <section id="home">
+    <div class="grid">
+      <div class="card" data-open="tool-torque">
+        <div><span class="icon">🔧</span><span class="title">Metric Bolt Torque</span></div>
+        <div class="desc">M6–M36 | Dry, Lubed, Stainless | N·m ↔ ft·lbf</div>
+      </div>
+      <div class="card" data-open="tool-arc">
+        <div><span class="icon">📐</span><span class="title">Pipe Radius & Arc</span></div>
+        <div class="desc">CLR, centre-to-face, inner/outer radii & arc lengths</div>
+      </div>
+      <div class="card" data-open="tool-gaskets">
+        <div><span class="icon">⭕</span><span class="title">PN Gasket Dimensions</span></div>
+        <div class="desc">EN 1092-1 PN10 / PN16 / PN40 | DN15–DN600</div>
+      </div>
+      <div class="card" data-open="tool-lateral">
+        <div><span class="icon">🔀</span><span class="title">Lateral Branch Cuts</span></div>
+        <div class="desc">Header/branch ODs, angle, 16ths table output</div>
+      </div>
+      <div class="card" data-open="tool-reference">
+        <div><span class="icon">📘</span><span class="title">Reference Formulas</span></div>
+        <div class="desc">Offsets, elbows, trig basics, pipe properties</div>
+      </div>
+      <div class="card" data-open="tool-rolling">
+        <div><span class="icon">🔄</span><span class="title">Rolling Offset</span></div>
+        <div class="desc">Travel, bend/cut angle, roll/twist, pup length</div>
+      </div>
+      <div class="card" data-open="tool-expansion">
+        <div><span class="icon">🌡️</span><span class="title">Thermal Expansion</span></div>
+        <div class="desc">ΔL from length & dT, by material</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TORQUE -->
+  <section id="tool-torque" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Metric Bolt Torque Chart</h2></div>
+    <div class="panel">
+      <label>Select Bolt Size</label>
+      <select id="torque-boltSelect">
+        <option value="">-- Choose --</option>
+        <option>M6</option><option>M8</option><option>M10</option><option>M12</option>
+        <option>M14</option><option>M16</option><option>M18</option><option>M20</option>
+        <option>M22</option><option>M24</option><option>M27</option><option>M30</option>
+        <option>M33</option><option>M36</option>
+      </select>
+      <button id="torque-unitToggle">Show in ft·lbf</button>
+      <div id="torque-result" class="value" style="margin-top:8px"></div>
+    </div>
+    <div class="panel">
+      <h2>Reference Table — Recommended Torque</h2>
+      <table>
+        <thead>
+          <tr><th>Bolt Size</th><th>Carbon Steel (Dry)</th><th>Carbon Steel (Lubed)</th><th>Stainless Steel</th></tr>
+        </thead>
+        <tbody id="torque-table"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ARC / RADIUS -->
+  <section id="tool-arc" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Pipe Radius & Arc Calculator</h2></div>
+    <div class="panel">
+      <label>Degree (θ)</label>
+      <input type="number" id="arc-deg" placeholder="e.g. 90">
+      <label>Nominal Bore (NB) — inches</label>
+      <input type="number" id="arc-nb" placeholder="e.g. 2">
+      <label>Outside Diameter (OD) — mm</label>
+      <input type="number" id="arc-od" placeholder="Enter OD (mm)">
+      <div class="warn" id="arc-warn"></div>
+
+      <div class="results">
+        <div class="resbox">
+          <div class="label">Centre Line Radius (CLR)</div>
+          <div class="value" id="arc-clr">— mm</div>
+          <div class="note">CLR = 1.5 × NB (in) × 25.4</div>
+        </div>
+        <div class="resbox">
+          <div class="label">Centre To Face</div>
+          <div class="value" id="arc-ctf">— mm</div>
+          <div class="note">CTF = tan(θ/2) × CLR</div>
+        </div>
+        <div class="resbox">
+          <div class="label">Internal Radius</div>
+          <div class="value" id="arc-rInt">— mm</div>
+          <div class="note">Rint = CLR − OD/2</div>
+        </div>
+        <div class="resbox">
+          <div class="label">External Radius</div>
+          <div class="value" id="arc-rExt">— mm</div>
+          <div class="note">Rext = CLR + OD/2</div>
+        </div>
+        <div class="resbox">
+          <div class="label">Internal Arc Length</div>
+          <div class="value" id="arc-lInt">— mm</div>
+          <div class="note">Lint = Rint × π × θ/180</div>
+        </div>
+        <div class="resbox">
+          <div class="label">External Arc Length</div>
+          <div class="value" id="arc-lExt">— mm</div>
+          <div class="note">Lext = Rext × π × θ/180</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GASKETS -->
+  <section id="tool-gaskets" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>PN Gasket Dimensions</h2></div>
+    <div class="panel">
+      <label>Select Pressure Rating</label>
+      <select id="gsk-pnSelect">
+        <option value="PN10" selected>PN10</option>
+        <option value="PN16">PN16</option>
+        <option value="PN40">PN40</option>
+      </select>
+    </div>
+    <div class="panel">
+      <h2 id="gsk-chartTitle">EN 1092-1 — PN10 Flat Ring Gaskets</h2>
+      <table>
+        <thead>
+          <tr><th>DN</th><th>Nominal Bore (in)</th><th>Inside Ø (mm)</th><th>Outside Ø (mm)</th><th>Thickness (mm)</th></tr>
+        </thead>
+        <tbody id="gsk-table"></tbody>
+      </table>
+      <p class="note">Values are typical EN 1092-1 flat ring gasket dimensions. Confirm with supplier for critical service.</p>
+    </div>
+  </section>
+
+  <!-- LATERAL BRANCH CUTS -->
+  <section id="tool-lateral" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
+    <div class="panel">
+      <label>Header OD (mm)</label>
+      <input type="number" id="lat-headerOD" value="304.8">
+      <label>Branch OD (mm)</label>
+      <input type="number" id="lat-branchOD" value="254">
+      <label>Branch ID (mm, optional)</label>
+      <input type="number" id="lat-branchID" placeholder="Optional">
+      <label>Lateral Angle (degrees)</label>
+      <input type="number" id="lat-angle" value="45">
+      <label>Number of Divisions</label>
+      <input type="number" id="lat-divisions" value="16">
+      <button id="lat-go">Calculate Cut Points</button>
+    </div>
+    <div class="panel" id="lat-results"></div>
+  </section>
+
+  <!-- REFERENCE -->
+  <section id="tool-reference" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Reference Formulas</h2></div>
+    <div class="panel">
+      <h2>Basic Geometry</h2>
+      <p><b>Circumference</b> = π × Diameter</p>
+      <p><b>Area of Circle</b> = π × (Radius²)</p>
+      <p><b>Pythagoras (Right Triangle)</b> = √(Adjacent² + Opposite²) = Hypotenuse</p>
+    </div>
+    <div class="panel">
+      <h2>Pipe Layout</h2>
+      <p><b>Elbow Takeoff (LR)</b> = 1.5 × NB (inches) × 25.4</p>
+      <p><b>Elbow Takeoff (SR)</b> = 1.0 × NB (inches) × 25.4</p>
+      <p><b>Centre to Face</b> = tan(Angle ÷ 2) × CLR</p>
+      <p><b>Miter Cutback</b> = CLR × tan(Angle ÷ 2)</p>
+    </div>
+    <div class="panel">
+      <h2>Offsets</h2>
+      <p><b>Simple Offset Travel</b> = √(Run² + Set²)</p>
+      <p><b>Rolling Offset Travel</b> = √(Run² + Set² + Roll²)</p>
+      <p><b>Bend Angle</b> = atan(Offset ÷ Run)</p>
+      <p><b>Roll (Twist) Angle</b> = atan(Roll ÷ Set)</p>
+      <p><b>Non-Parallel Offset Angle</b> = arccos(Roll ÷ Travel)</p>
+    </div>
+    <div class="panel">
+      <h2>Pipe Properties</h2>
+      <p><b>Weight per metre</b> = (π/4) × (OD² − ID²) × Density</p>
+      <p><b>Internal Volume per metre</b> = (π/4) × (ID²) × 0.001 (litres)</p>
+      <p><b>Surface Area (external)</b> = π × OD × Length</p>
+      <p><b>Thermal Expansion</b> = Coefficient × Length × ΔT</p>
+    </div>
+    <div class="panel">
+      <h2>Trigonometry Basics</h2>
+      <p><b>sin(θ)</b> = Opposite ÷ Hypotenuse</p>
+      <p><b>cos(θ)</b> = Adjacent ÷ Hypotenuse</p>
+      <p><b>tan(θ)</b> = Opposite ÷ Adjacent</p>
+      <p><b>Inverse:</b> θ = sin⁻¹, cos⁻¹, tan⁻¹ of the ratio</p>
+    </div>
+  </section>
+
+  <!-- ROLLING OFFSET -->
+  <section id="tool-rolling" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Rolling Offset — Cut, Roll, Pup & Circumference</h2></div>
+    <div class="panel">
+      <label>Run length (mm)</label>
+      <input type="number" id="roll-run" placeholder="e.g. 600">
+      <label>Set length (mm)</label>
+      <input type="number" id="roll-set" placeholder="e.g. 200">
+      <label>Roll length (mm)</label>
+      <input type="number" id="roll-roll" placeholder="e.g. 150">
+      <label>Nominal Bore (NB) — inches (optional)</label>
+      <input type="number" id="roll-nb" placeholder="e.g. 6">
+      <label>Elbow type (for NB)</label>
+      <select id="roll-type">
+        <option value="LR" selected>Long Radius (1.5D)</option>
+        <option value="SR">Short Radius (1.0D)</option>
+      </select>
+      <label>Pipe Outside Diameter (OD) — mm (optional)</label>
+      <input type="number" id="roll-od" placeholder="e.g. 168.3">
+      <div class="note">
+        • Travel = √(Run² + Set² + Roll²)<br>
+        • Bend (cut) angle = atan( √(Set² + Roll²) ÷ Run ) → degrees<br>
+        • Roll (twist) angle = atan( Roll ÷ Set ) → degrees<br>
+        • Pup length requires NB + elbow type<br>
+        • Circumference/mm per degree requires OD
+      </div>
+      <button id="roll-go">Calculate</button>
+    </div>
+    <div id="roll-results" class="panel hidden">
+      <div class="results">
+        <div class="resbox"><div class="label">Travel length</div><div class="value" id="roll-travel">—</div></div>
+        <div class="resbox"><div class="label">Bend (cut) angle</div><div class="value" id="roll-bend">—</div></div>
+        <div class="resbox"><div class="label">Roll (twist) angle</div><div class="value" id="roll-twist">—</div></div>
+        <div class="resbox"><div class="label">Takeout per elbow</div><div class="value" id="roll-takeout">—</div></div>
+        <div class="resbox"><div class="label">Pup length</div><div class="value" id="roll-pup">—</div></div>
+        <div class="resbox"><div class="label">Circumference</div><div class="value" id="roll-circ">—</div></div>
+        <div class="resbox"><div class="label">mm per degree</div><div class="value" id="roll-mmdeg">—</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THERMAL EXPANSION -->
+  <section id="tool-expansion" class="hidden">
+    <div class="topbar"><span class="back" data-home>← Back</span><h2>Pipe Thermal Expansion</h2></div>
+    <div class="panel">
+      <label>Pipe Length (m)</label>
+      <input type="number" id="exp-length" placeholder="e.g. 30">
+      <label>Temperature Change (ΔT °C)</label>
+      <input type="number" id="exp-dt" placeholder="e.g. 80">
+      <label>Material</label>
+      <select id="exp-mat">
+        <option value="0.012">Carbon Steel (0.012 mm/m·°C)</option>
+        <option value="0.017">Stainless Steel (0.017 mm/m·°C)</option>
+        <option value="0.017">Copper (0.017 mm/m·°C)</option>
+        <option value="0.060">PVC (0.060 mm/m·°C)</option>
+      </select>
+      <button id="exp-go">Calculate Expansion</button>
+    </div>
+    <div id="exp-results" class="panel hidden">
+      <div class="results">
+        <div class="resbox"><div class="label">Expansion (ΔL)</div><div class="value" id="expansion-val">—</div></div>
+      </div>
+      <p class="note">Formula: ΔL = α × L × ΔT &nbsp; (α in mm/m·°C; L in m ⇒ ΔL in mm)</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ---------------- ROUTER ---------------- */
+const sections=["home","tool-torque","tool-arc","tool-gaskets","tool-lateral","tool-reference","tool-rolling","tool-expansion"];
+function show(id){
+  sections.forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>show('home')));
+document.querySelectorAll('#home .card').forEach(c=>c.addEventListener('click',()=>show(c.dataset.open)));
+
+/* ---------------- TORQUE ---------------- */
+const torqueData={
+  "M6": {dry:10, lube:7, ss:6},
+  "M8": {dry:25, lube:18, ss:16},
+  "M10":{dry:49, lube:36, ss:32},
+  "M12":{dry:85, lube:63, ss:56},
+  "M14":{dry:135,lube:100,ss:90},
+  "M16":{dry:210,lube:155,ss:140},
+  "M18":{dry:290,lube:215,ss:195},
+  "M20":{dry:410,lube:305,ss:275},
+  "M22":{dry:550,lube:410,ss:370},
+  "M24":{dry:710,lube:530,ss:480},
+  "M27":{dry:1050,lube:785,ss:710},
+  "M30":{dry:1450,lube:1080,ss:970},
+  "M33":{dry:2000,lube:1500,ss:1350},
+  "M36":{dry:2600,lube:1950,ss:1750}
+};
+let torqueUseFtLb=false;
+function torqueToUnit(val){ return torqueUseFtLb ? (val*0.73756).toFixed(0)+" ft·lbf" : val+" N·m"; }
+function torqueRenderTable(){
+  const tbody=document.getElementById('torque-table');
+  tbody.innerHTML="";
+  for(const [size,vals] of Object.entries(torqueData)){
+    tbody.innerHTML += `<tr>
+      <td>${size}</td>
+      <td>${torqueToUnit(vals.dry)}</td>
+      <td>${torqueToUnit(vals.lube)}</td>
+      <td>${torqueToUnit(vals.ss)}</td>
+    </tr>`;
+  }
+}
+torqueRenderTable();
+document.getElementById('torque-unitToggle').addEventListener('click',()=>{
+  torqueUseFtLb=!torqueUseFtLb;
+  document.getElementById('torque-unitToggle').textContent = torqueUseFtLb ? "Show in N·m" : "Show in ft·lbf";
+  torqueRenderTable();
+  const sel=document.getElementById('torque-boltSelect');
+  if(sel.value){
+    const t=torqueData[sel.value];
+    document.getElementById('torque-result').textContent =
+      `${sel.value}: Carbon Steel (Dry) = ${torqueToUnit(t.dry)} | Carbon Steel (Lubed) = ${torqueToUnit(t.lube)} | Stainless Steel = ${torqueToUnit(t.ss)}`;
+  }
+});
+document.getElementById('torque-boltSelect').addEventListener('change',e=>{
+  const v=e.target.value, res=document.getElementById('torque-result');
+  if(!v){res.textContent="";return;}
+  const t=torqueData[v];
+  res.textContent = `${v}: Carbon Steel (Dry) = ${torqueToUnit(t.dry)} | Carbon Steel (Lubed) = ${torqueToUnit(t.lube)} | Stainless Steel = ${torqueToUnit(t.ss)}`;
+});
+
+/* ---------------- ARC / RADIUS ---------------- */
+function fmt3(v){ return Number(v).toFixed(3); }
+function arcCalc(){
+  const deg=parseFloat(document.getElementById('arc-deg').value);
+  const nb=parseFloat(document.getElementById('arc-nb').value);
+  const od=parseFloat(document.getElementById('arc-od').value);
+  const warn=document.getElementById('arc-warn'); warn.textContent='';
+  let clr = isNaN(nb)? NaN : 1.5*nb*25.4;
+  document.getElementById('arc-clr').textContent = isNaN(clr)? '— mm' : fmt3(clr)+' mm';
+  let ctf = (!isNaN(clr) && !isNaN(deg)) ? Math.tan((deg*Math.PI/180)/2)*clr : NaN;
+  document.getElementById('arc-ctf').textContent = isNaN(ctf)? '— mm' : fmt3(ctf)+' mm';
+  let rInt=NaN, rExt=NaN;
+  if(!isNaN(clr) && !isNaN(od)){ rInt=clr-od/2; rExt=clr+od/2; }
+  document.getElementById('arc-rInt').textContent = isNaN(rInt)? '— mm' : fmt3(rInt)+' mm';
+  document.getElementById('arc-rExt').textContent = isNaN(rExt)? '— mm' : fmt3(rExt)+' mm';
+  if(!isNaN(rInt) && !isNaN(rExt) && !isNaN(deg)){
+    if(rInt<=0) warn.textContent='⚠ Internal radius ≤ 0 — OD too large for this NB.';
+    const lInt=rInt*Math.PI*deg/180, lExt=rExt*Math.PI*deg/180;
+    document.getElementById('arc-lInt').textContent=fmt3(lInt)+' mm';
+    document.getElementById('arc-lExt').textContent=fmt3(lExt)+' mm';
+  } else {
+    document.getElementById('arc-lInt').textContent='— mm';
+    document.getElementById('arc-lExt').textContent='— mm';
+  }
+}
+['arc-deg','arc-nb','arc-od'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('input', arcCalc);
+  el.addEventListener('change', arcCalc);
+});
+arcCalc();
+
+/* ---------------- GASKETS ---------------- */
+const gasketData = {
+  "PN10": {
+    title: "EN 1092-1 — PN10 Flat Ring Gaskets",
+    data: [
+      {dn:"DN15", nb:'½"', id:18, od:58, thk:1.5},{dn:"DN20", nb:'¾"', id:25, od:65, thk:1.5},
+      {dn:"DN25", nb:'1"', id:32, od:75, thk:1.5},{dn:"DN32", nb:'1¼"', id:38, od:90, thk:1.5},
+      {dn:"DN40", nb:'1½"', id:45, od:100, thk:1.5},{dn:"DN50", nb:'2"', id:57, od:107, thk:1.5},
+      {dn:"DN65", nb:'2½"', id:76, od:127, thk:1.5},{dn:"DN80", nb:'3"', id:89, od:142, thk:1.5},
+      {dn:"DN100", nb:'4"', id:114, od:162, thk:1.5},{dn:"DN125", nb:'5"', id:140, od:192, thk:1.5},
+      {dn:"DN150", nb:'6"', id:168, od:218, thk:1.5},{dn:"DN200", nb:'8"', id:219, od:273, thk:1.5},
+      {dn:"DN250", nb:'10"', id:273, od:328, thk:1.5},{dn:"DN300", nb:'12"', id:324, od:378, thk:1.5},
+      {dn:"DN350", nb:'14"', id:356, od:438, thk:1.5},{dn:"DN400", nb:'16"', id:406, od:489, thk:1.5},
+      {dn:"DN450", nb:'18"', id:457, od:539, thk:1.5},{dn:"DN500", nb:'20"', id:508, od:594, thk:1.5},
+      {dn:"DN600", nb:'24"', id:610, od:695, thk:1.5}
+    ]
+  },
+  "PN16": {
+    title: "EN 1092-1 — PN16 Flat Ring Gaskets",
+    data: [
+      {dn:"DN15", nb:'½"', id:18, od:62, thk:2},{dn:"DN20", nb:'¾"', id:25, od:68, thk:2},
+      {dn:"DN25", nb:'1"', id:32, od:78, thk:2},{dn:"DN32", nb:'1¼"', id:38, od:94, thk:2},
+      {dn:"DN40", nb:'1½"', id:45, od:104, thk:2},{dn:"DN50", nb:'2"', id:57, od:112, thk:2},
+      {dn:"DN65", nb:'2½"', id:76, od:132, thk:2},{dn:"DN80", nb:'3"', id:89, od:148, thk:2},
+      {dn:"DN100", nb:'4"', id:114, od:168, thk:2},{dn:"DN125", nb:'5"', id:140, od:198, thk:2},
+      {dn:"DN150", nb:'6"', id:168, od:224, thk:2},{dn:"DN200", nb:'8"', id:219, od:279, thk:2},
+      {dn:"DN250", nb:'10"', id:273, od:340, thk:2},{dn:"DN300", nb:'12"', id:324, od:395, thk:2},
+      {dn:"DN350", nb:'14"', id:356, od:445, thk:2},{dn:"DN400", nb:'16"', id:406, od:505, thk:2},
+      {dn:"DN450", nb:'18"', id:457, od:565, thk:2},{dn:"DN500", nb:'20"', id:508, od:620, thk:2},
+      {dn:"DN600", nb:'24"', id:610, od:725, thk:2}
+    ]
+  },
+  "PN40": {
+    title: "EN 1092-1 — PN40 Flat Ring Gaskets",
+    data: [
+      {dn:"DN15", nb:'½"', id:18, od:68, thk:2},{dn:"DN20", nb:'¾"', id:25, od:75, thk:2},
+      {dn:"DN25", nb:'1"', id:32, od:85, thk:2},{dn:"DN32", nb:'1¼"', id:38, od:100, thk:2},
+      {dn:"DN40", nb:'1½"', id:45, od:110, thk:2},{dn:"DN50", nb:'2"', id:57, od:122, thk:2},
+      {dn:"DN65", nb:'2½"', id:76, od:145, thk:2},{dn:"DN80", nb:'3"', id:89, od:154, thk:2},
+      {dn:"DN100", nb:'4"', id:114, od:178, thk:2},{dn:"DN125", nb:'5"', id:140, od:210, thk:2},
+      {dn:"DN150", nb:'6"', id:168, od:240, thk:2},{dn:"DN200", nb:'8"', id:219, od:295, thk:2},
+      {dn:"DN250", nb:'10"', id:273, od:362, thk:2},{dn:"DN300", nb:'12"', id:324, od:422, thk:2},
+      {dn:"DN350", nb:'14"', id:356, od:482, thk:2},{dn:"DN400", nb:'16"', id:406, od:542, thk:2},
+      {dn:"DN450", nb:'18"', id:457, od:605, thk:2},{dn:"DN500", nb:'20"', id:508, od:665, thk:2},
+      {dn:"DN600", nb:'24"', id:610, od:780, thk:2}
+    ]
+  }
+};
+function gskRender(pn){
+  const t=gasketData[pn];
+  document.getElementById('gsk-chartTitle').textContent=t.title;
+  const body=document.getElementById('gsk-table');
+  body.innerHTML="";
+  t.data.forEach(r=>{
+    body.innerHTML += `<tr><td>${r.dn}</td><td>${r.nb}</td><td>${r.id}</td><td>${r.od}</td><td>${r.thk}</td></tr>`;
+  });
+}
+document.getElementById('gsk-pnSelect').addEventListener('change',e=>gskRender(e.target.value));
+gskRender('PN10');
+
+/* ---------------- LATERAL ---------------- */
+document.getElementById('lat-go').addEventListener('click', ()=>{
+  const H_OD=parseFloat(document.getElementById('lat-headerOD').value);
+  const B_OD=parseFloat(document.getElementById('lat-branchOD').value);
+  const B_ID=parseFloat(document.getElementById('lat-branchID').value);
+  const angleDeg=parseFloat(document.getElementById('lat-angle').value);
+  const divisions=parseInt(document.getElementById('lat-divisions').value);
+  if([H_OD,B_OD,angleDeg,divisions].some(v=>!isFinite(v))){ alert("Please enter valid numbers for all required fields."); return; }
+  const H=H_OD/2, B=(isFinite(B_ID) ? B_ID/2 : B_OD/2);
+  if(B>H){ alert("Branch radius is larger than header radius! Check your inputs."); return; }
+  const angleRad=angleDeg*Math.PI/180;
+  const phiStep=360/divisions;
+  let html='<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Cut Height (mm)</th></tr>';
+  for(let i=0;i<divisions;i++){
+    const phi=phiStep*i, phiRad=phi*Math.PI/180;
+    const sqrtArg=H*H - Math.pow(B*Math.sin(phiRad),2);
+    if(sqrtArg<0){ html+=`<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>NaN</td></tr>`; continue; }
+    const part1=(H-Math.sqrt(sqrtArg))/Math.sin(angleRad);
+    const part2=B*(1-Math.cos(phiRad))/Math.tan(angleRad);
+    const cut=part1+part2;
+    html+=`<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>${cut.toFixed(2)}</td></tr>`;
+  }
+  html+='</table>';
+  document.getElementById('lat-results').innerHTML=html;
+});
+
+/* ---------------- ROLLING OFFSET ---------------- */
+function fmt2(n){return Number(n).toFixed(2);}
+document.getElementById('roll-go').addEventListener('click', ()=>{
+  const run=parseFloat(document.getElementById('roll-run').value);
+  const set=parseFloat(document.getElementById('roll-set').value);
+  const roll=parseFloat(document.getElementById('roll-roll').value);
+  const nb=parseFloat(document.getElementById('roll-nb').value);
+  const type=document.getElementById('roll-type').value;
+  const od=parseFloat(document.getElementById('roll-od').value);
+  if([run,set,roll].some(v=>!isFinite(v))){ alert("Please enter Run, Set and Roll."); return; }
+  if(run<=0){ alert("Run must be > 0."); return; }
+  const offset=Math.sqrt(set*set + roll*roll);
+  const travel=Math.sqrt(run*run + offset*offset);
+  const bendDeg=Math.atan2(offset, run)*180/Math.PI;
+  const twistDeg=(set===0) ? (roll===0?0:90) : Math.atan2(roll,set)*180/Math.PI;
+  let takeout=null, pup=null, circ=null, mmdeg=null;
+  if(isFinite(nb)){
+    const Rc=(type==='LR'?1.5:1.0)*nb*25.4;
+    const bendRad=bendDeg*Math.PI/180;
+    takeout=Rc*Math.tan(bendRad/2);
+    pup=travel-2*takeout; if(pup<0) pup=0;
+  }
+  if(isFinite(od)){ circ=Math.PI*od; mmdeg=circ/360; }
+  document.getElementById('roll-travel').textContent=fmt2(travel)+" mm";
+  document.getElementById('roll-bend').textContent=fmt2(bendDeg)+"°";
+  document.getElementById('roll-twist').textContent=fmt2(twistDeg)+"°";
+  document.getElementById('roll-takeout').textContent=(takeout!==null?fmt2(takeout)+" mm":"—");
+  document.getElementById('roll-pup').textContent=(pup!==null?fmt2(pup)+" mm":"—");
+  document.getElementById('roll-circ').textContent=(circ!==null?fmt2(circ)+" mm":"—");
+  document.getElementById('roll-mmdeg').textContent=(mmdeg!==null?fmt2(mmdeg)+" mm/°":"—");
+  document.getElementById('roll-results').classList.remove('hidden');
+});
+
+/* ---------------- THERMAL EXPANSION ---------------- */
+document.getElementById('exp-go').addEventListener('click', ()=>{
+  const L=parseFloat(document.getElementById('exp-length').value);
+  const dT=parseFloat(document.getElementById('exp-dt').value);
+  const a=parseFloat(document.getElementById('exp-mat').value);
+  if(!isFinite(L) || !isFinite(dT) || L<=0){ alert("Please enter valid values for length and ΔT."); return; }
+  const dL=a*L*dT; // mm
+  document.getElementById('expansion-val').textContent=Number(dL).toFixed(2)+" mm";
+  document.getElementById('exp-results').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
