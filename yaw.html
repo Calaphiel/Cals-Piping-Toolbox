@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Yaw Tool (Calibrated)</title>
+  <style>
+    body {
+      margin:0; font-family:Arial, sans-serif;
+      background:#1e1e1e; color:#eaeaea; text-align:center;
+    }
+    header { background:#111; padding:16px; border-bottom:2px solid #333; }
+    h1 { margin:0; font-size:22px; }
+    .topbar { margin:14px; text-align:left; }
+    .back {
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:8px;
+      background:#24324f;
+      color:#cfe6ff;
+      border:1px solid #2b3b62;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    #enableBtn {
+      margin-top:40px;
+      padding:14px 20px;
+      background:#007bff;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      cursor:pointer;
+    }
+    #enableBtn:hover { background:#0056b3; }
+    .value { font-size:28px; margin-top:30px; color:#7dd3fc; }
+    .panel {
+      background:#0f172a;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      padding:16px;
+      margin:20px auto;
+      width:80%; max-width:400px;
+      cursor:pointer;
+    }
+    .label { font-size:14px; color:#94a3b8; }
+    .relval { font-size:22px; color:#7dd3fc; margin-top:8px; }
+    .panel:active { background:#1b2a45; }
+  </style>
+</head>
+<body>
+  <header><h1>Yaw Tool (Calibrated)</h1></header>
+
+  <div class="topbar">
+    <a href="index.html" class="back">← Back to Home</a>
+  </div>
+
+  <button id="enableBtn">Enable Sensor</button>
+
+  <div class="value" id="yaw">Yaw: —</div>
+
+  <div class="panel" id="relPanel">
+    <div class="label">Relative Yaw (tap to zero)</div>
+    <div class="relval" id="relYaw">—</div>
+  </div>
+
+  <script>
+    let relZero = 0;
+    let currentYaw = 0;
+
+    function startOrientation(){
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission()
+          .then(res => {
+            if(res === "granted"){
+              window.addEventListener("deviceorientation", handleOrientation);
+              document.getElementById("enableBtn").style.display="none";
+            }
+          })
+          .catch(console.error);
+      } else {
+        // Android / Desktop
+        window.addEventListener("deviceorientation", handleOrientation);
+        document.getElementById("enableBtn").style.display="none";
+      }
+    }
+
+    function handleOrientation(e){
+      if(e.alpha == null) return;
+      currentYaw = e.alpha; // 0–360 absolute yaw
+
+      document.getElementById("yaw").textContent = "Yaw: " + currentYaw.toFixed(1) + "°";
+
+      let rel = currentYaw - relZero;
+      if(rel > 180) rel -= 360;
+      if(rel < -180) rel += 360;
+      document.getElementById("relYaw").textContent = rel.toFixed(1) + "°";
+    }
+
+    document.getElementById("relPanel").addEventListener("click", ()=>{
+      relZero = currentYaw;
+    });
+
+    document.getElementById("enableBtn").addEventListener("click", startOrientation);
+  </script>
+</body>
+</html>
