@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=no" />
+<title>Right Triangle Solver</title>
+<style>
+  body{background:#1e1e1e;color:#eaeaea;font-family:Arial,Helvetica,sans-serif;margin:0;text-align:center}
+  header{background:#111;padding:14px;border-bottom:2px solid #333}
+  h1{margin:0;font-size:20px}
+  svg{max-width:460px;width:100%;margin:16px auto 8px auto;display:block}
+  input{
+    width:60px;font-size:13px;padding:3px;
+    border-radius:5px;border:1px solid #444;background:#2b2b2b;
+    color:#fff;text-align:center;
+  }
+  button{margin:6px;padding:8px 14px;border:none;border-radius:6px;background:#007bff;color:#fff;font-size:13px;cursor:pointer}
+  button:disabled{background:#555;cursor:not-allowed}
+  button:hover:enabled{background:#0056b3}
+  .label{font-size:12px;fill:#94a3b8}
+  #status{font-size:13px;color:#94a3b8;margin:10px 0}
+  .topbar{display:flex;justify-content:flex-start;align-items:center;gap:10px;padding:8px}
+  .back{padding:6px 10px;border-radius:6px;background:#24324f;color:#cfe6ff;border:1px solid #2b3b62;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <a href="index.html" class="back">← Back to Home</a>
+  </div>
+  <h1>Right Triangle Solver</h1>
+</header>
+
+<svg viewBox="0 0 320 260">
+  <!-- Triangle -->
+  <polygon id="tri" points="60,210 280,210 60,40" fill="none" stroke="#7dd3fc" stroke-width="2"/>
+  <!-- Right angle marker -->
+  <polyline points="60,210 80,210 80,190 60,190" fill="none" stroke="#94a3b8" stroke-width="2"/>
+
+  <!-- Static Labels -->
+  <text x="130" y="248" class="label">Adjacent (b)</text>
+  <text x="20"  y="125" class="label">Opposite (a)</text>
+  <text x="180" y="90"  class="label">Hypotenuse (c)</text>
+  <text x="240" y="248" class="label">Angle B (°)</text>
+  <text x="25" y="10"  class="label">Angle C (°)</text>
+
+  <!-- Inputs -->
+  <foreignObject x="130" y="210" width="65" height="24"><input id="b" type="number" placeholder="b"></foreignObject>
+  <foreignObject x="15"  y="130" width="65" height="24"><input id="a" type="number" placeholder="a"></foreignObject>
+  <foreignObject x="180" y="98"  width="65" height="24"><input id="c" type="number" placeholder="c"></foreignObject>
+  <foreignObject x="240" y="212" width="65" height="24"><input id="B" type="number" placeholder="B"></foreignObject>
+  <foreignObject x="25" y="10"  width="65" height="24"><input id="C" type="number" placeholder="C"></foreignObject>
+</svg>
+
+<div>
+  <button id="calcBtn" disabled>Calculate</button>
+  <button id="resetBtn">Reset</button>
+</div>
+<p id="status">Enter any 2 values (two sides, or one side + one acute angle).</p>
+
+<script>
+function toRad(d){return d*Math.PI/180}
+function toDeg(r){return r*180/Math.PI}
+function clampAngle(x){if(!isFinite(x)) return NaN;return Math.min(89.9999,Math.max(0.0001,x));}
+
+function solve(){
+  let a = parseFloat(document.getElementById('a').value);
+  let b = parseFloat(document.getElementById('b').value);
+  let c = parseFloat(document.getElementById('c').value);
+  let B = parseFloat(document.getElementById('B').value);
+  let C = parseFloat(document.getElementById('C').value);
+
+  try{
+    if(a&&b){c=Math.sqrt(a*a+b*b);B=toDeg(Math.atan2(a,b));C=90-B;}
+    else if(a&&c){if(c<=a)throw new Error();b=Math.sqrt(c*c-a*a);B=toDeg(Math.asin(a/c));C=90-B;}
+    else if(b&&c){if(c<=b)throw new Error();a=Math.sqrt(c*c-b*b);B=toDeg(Math.acos(b/c));C=90-B;}
+    else if(B){B=clampAngle(B);C=90-B;
+      if(a){b=a/Math.tan(toRad(B));c=a/Math.sin(toRad(B));}
+      else if(b){a=b*Math.tan(toRad(B));c=b/Math.cos(toRad(B));}
+      else if(c){a=c*Math.sin(toRad(B));b=c*Math.cos(toRad(B));}
+    } else if(C){C=clampAngle(C);B=90-C;
+      if(a){b=a/Math.tan(toRad(C));c=a/Math.sin(toRad(C));}
+      else if(b){a=b*Math.tan(toRad(C));c=b/Math.cos(toRad(C));}
+      else if(c){a=c*Math.sin(toRad(C));b=c*Math.cos(toRad(C));}
+    } else {throw new Error();}
+
+    // update boxes
+    document.getElementById('a').value=a.toFixed(2);
+    document.getElementById('b').value=b.toFixed(2);
+    document.getElementById('c').value=c.toFixed(2);
+    document.getElementById('B').value=B.toFixed(2);
+    document.getElementById('C').value=C.toFixed(2);
+
+    document.getElementById('status').textContent="Solved ✅";
+  }catch(e){
+    document.getElementById('status').textContent="Check inputs";
+  }
+}
+
+function resetAll(){
+  ['a','b','c','B','C'].forEach(id=>document.getElementById(id).value="");
+  document.getElementById('status').textContent="Enter any 2 values.";
+  document.getElementById('calcBtn').disabled=true;
+}
+
+function checkInputs(){
+  const filled = ['a','b','c','B','C'].filter(id=>{
+    let v=parseFloat(document.getElementById(id).value);
+    return isFinite(v)&&v>0;
+  }).length;
+  document.getElementById('calcBtn').disabled = (filled<2);
+}
+
+['a','b','c','B','C'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', checkInputs);
+});
+document.getElementById('calcBtn').addEventListener('click', solve);
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>
