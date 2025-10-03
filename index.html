@@ -60,51 +60,56 @@ if ("serviceWorker" in navigator) {
 
 <header><h1>Pipefitter’s Toolbox</h1></header>
 
-<main>
-
-  <!-- HOMEPAGE (visible by default) -->
-  <section id="home">
-    <div class="grid">
-      <div class="card" data-open="tool-torque">
-        <div><span class="icon">🔧</span><span class="title">Metric Bolt Torque</span></div>
-        <div class="desc">M6–M36 | Dry, Lubed, Stainless | N·m ↔ ft·lbf</div>
-      </div>
-      <div class="card" data-open="tool-arc">
-        <div><span class="icon">📐</span><span class="title">Pipe Radius & Arc</span></div>
-        <div class="desc">CLR, centre-to-face, inner/outer radii & arc lengths</div>
-      </div>
-      <div class="card" data-open="tool-gaskets">
-        <div><span class="icon">⭕</span><span class="title">PN Gasket Dimensions</span></div>
-        <div class="desc">EN 1092-1 PN10 / PN16 / PN40 | DN15–DN600</div>
-      </div>
-      <div class="card" data-open="tool-lateral">
-        <div><span class="icon">🔀</span><span class="title">Lateral Branch Cuts</span></div>
-        <div class="desc">Header/branch ODs, angle, 16ths table output</div>
-      </div>
-      <div class="card" data-open="tool-reference">
-        <div><span class="icon">📘</span><span class="title">Reference Formulas</span></div>
-        <div class="desc">Offsets, elbows, trig basics, pipe properties</div>
-      </div>
-      <div class="card" data-open="tool-rolling">
-        <div><span class="icon">🔄</span><span class="title">Rolling Offset</span></div>
-        <div class="desc">Travel, bend/cut angle, roll/twist, pup length</div>
-      </div>
-      <div class="card" data-open="tool-expansion">
-        <div><span class="icon">🌡️</span><span class="title">Thermal Expansion</span></div>
-        <div class="desc">ΔL from length & dT, by material</div>
-      </div>
-      <div class="card" onclick="location.href='yaw.html'">
-        <span class="icon">🧭</span>
-        <span class="title">Yaw Tool</span>
-        <div class="desc">Relative yaw with zeroing (calibrated).</div>
-      </div>
-      <div class="card" onclick="location.href='triangle.html'">
-        <span class="icon">◣</span>
-        <span class="title">Right Triangle Solver</span>
-        <div class="desc">Solve right triangles with 2 known values.</div>
-</div>
+<<!-- HOMEPAGE (visible by default) -->
+<section id="home">
+  <div class="grid">
+    <div class="card" data-open="tool-torque">
+      <div><span class="icon">🔧</span><span class="title">Metric Bolt Torque</span></div>
+      <div class="desc">M6–M36 | Dry, Lubed, Stainless | N·m ↔ ft·lbf</div>
     </div>
-  </section>
+
+    <div class="card" data-open="tool-arc">
+      <div><span class="icon">📐</span><span class="title">Pipe Radius & Arc</span></div>
+      <div class="desc">CLR, centre-to-face, inner/outer radii & arc lengths</div>
+    </div>
+
+    <div class="card" data-open="tool-gaskets">
+      <div><span class="icon">⭕</span><span class="title">PN Gasket Dimensions</span></div>
+      <div class="desc">EN 1092-1 PN10 / PN16 / PN40 | DN15–DN600</div>
+    </div>
+
+    <div class="card" data-open="tool-lateral">
+      <div><span class="icon">🔀</span><span class="title">Lateral Branch Cuts</span></div>
+      <div class="desc">Header/branch ODs, angle, 16ths table output</div>
+    </div>
+
+    <div class="card" data-open="tool-reference">
+      <div><span class="icon">📘</span><span class="title">Reference Formulas</span></div>
+      <div class="desc">Offsets, elbows, trig basics, pipe properties</div>
+    </div>
+
+    <div class="card" data-open="tool-rolling">
+      <div><span class="icon">🔄</span><span class="title">Rolling Offset</span></div>
+      <div class="desc">Travel, bend/cut angle, roll/twist, pup length</div>
+    </div>
+
+    <div class="card" data-open="tool-expansion">
+      <div><span class="icon">🌡️</span><span class="title">Thermal Expansion</span></div>
+      <div class="desc">ΔL from length & dT, by material</div>
+    </div>
+
+    <div class="card" onclick="location.href='yaw.html'">
+      <div><span class="icon">🧭</span><span class="title">Yaw Tool</span></div>
+      <div class="desc">Relative yaw with zeroing (calibrated).</div>
+    </div>
+
+    <div class="card" onclick="location.href='triangle.html'">
+      <div><span class="icon">◣</span><span class="title">Right Triangle Solver</span></div>
+      <div class="desc">Solve right triangles with 2 known values.</div>
+    </div>
+  </div>
+</section>
+
 
   <!-- TORQUE -->
   <section id="tool-torque" class="hidden">
