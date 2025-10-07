@@ -70,19 +70,55 @@ function solve(){
   let B = parseFloat(document.getElementById('B').value);
   let C = parseFloat(document.getElementById('C').value);
 
-  try{
-    if(a&&b){c=Math.sqrt(a*a+b*b);B=toDeg(Math.atan2(a,b));C=90-B;}
-    else if(a&&c){if(c<=a)throw new Error();b=Math.sqrt(c*c-a*a);B=toDeg(Math.asin(a/c));C=90-B;}
-    else if(b&&c){if(c<=b)throw new Error();a=Math.sqrt(c*c-b*b);B=toDeg(Math.acos(b/c));C=90-B;}
-    else if(B){B=clampAngle(B);C=90-B;
-      if(a){b=a/Math.tan(toRad(B));c=a/Math.sin(toRad(B));}
-      else if(b){a=b*Math.tan(toRad(B));c=b/Math.cos(toRad(B));}
-      else if(c){a=c*Math.sin(toRad(B));b=c*Math.cos(toRad(B));}
-    } else if(C){C=clampAngle(C);B=90-C;
-      if(a){b=a/Math.tan(toRad(C));c=a/Math.sin(toRad(C));}
-      else if(b){a=b*Math.tan(toRad(C));c=b/Math.cos(toRad(C));}
-      else if(c){a=c*Math.sin(toRad(C));b=c*Math.cos(toRad(C));}
-    } else {throw new Error();}
+try {
+  if (a && b) {
+    c = Math.sqrt(a*a + b*b);
+    B = toDeg(Math.atan2(a, b));
+    C = 90 - B;
+  }
+  else if (a && c) {
+    if (c <= a) throw new Error();
+    b = Math.sqrt(c*c - a*a);
+    B = toDeg(Math.asin(a/c));
+    C = 90 - B;
+  }
+  else if (b && c) {
+    if (c <= b) throw new Error();
+    a = Math.sqrt(c*c - b*b);
+    B = toDeg(Math.acos(b/c));
+    C = 90 - B;
+  }
+  else if (B) {
+    B = clampAngle(B);
+    C = 90 - B;
+    if (a) {
+      b = a * Math.tan(toRad(B));
+      c = a / Math.cos(toRad(B));
+    } else if (b) {
+      a = b / Math.tan(toRad(B));
+      c = b / Math.sin(toRad(B));
+    } else if (c) {
+      a = c * Math.cos(toRad(B));
+      b = c * Math.sin(toRad(B));
+    }
+  }
+  else if (C) {
+    C = clampAngle(C);
+    B = 90 - C;
+    if (a) { // a is adjacent to C
+      b = a * Math.tan(toRad(C));
+      c = a / Math.cos(toRad(C));
+    } else if (b) { // b is opposite to C
+      a = b / Math.tan(toRad(C));
+      c = b / Math.sin(toRad(C));
+    } else if (c) { // c is hypotenuse
+      a = c * Math.cos(toRad(C));
+      b = c * Math.sin(toRad(C));
+    }
+  }
+  else {
+    throw new Error();
+  }
 
     // update boxes
     document.getElementById('a').value=a.toFixed(2);
