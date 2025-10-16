@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Elbow Pass-Through Checker (LR)</title>
+<style>
+  :root{
+    --bg:#1e1e1e; --fg:#eaeaea; --panel:#0f172a; --edge:#333;
+    --muted:#94a3b8; --accent:#7dd3fc; --brand:#007bff; --brandH:#0056b3;
+    --ok:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+  header{background:#111;padding:14px;text-align:center;border-bottom:2px solid var(--edge)}
+  h1{margin:0;font-size:20px}
+  main{max-width:900px;margin:0 auto;padding:16px}
+  .topbar{display:flex;align-items:center;gap:10px;margin:8px 0 16px 0}
+  .back{display:inline-block;padding:8px 10px;border-radius:8px;background:#24324f;color:#cfe6ff;border:1px solid #2b3b62;font-size:13px;cursor:pointer;text-decoration:none}
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-bottom:16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:760px){.row{grid-template-columns:1fr}}
+  label{display:block;margin-top:8px;color:var(--muted);font-size:14px}
+  input{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #444;background:#2b2b2b;color:#fff;box-sizing:border-box}
+  button{width:100%;padding:12px;margin-top:12px;border:none;border-radius:8px;background:var(--brand);color:#fff;font-size:16px;cursor:pointer}
+  button:hover{background:var(--brandH)}
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  @media (max-width:760px){.results{grid-template-columns:1fr}}
+  .resbox{background:rgba(255,255,255,0.05);padding:12px;border-radius:8px}
+  .label{font-size:13px;color:var(--muted)}
+  .value{font-size:18px;color:var(--accent);margin-top:4px}
+  .status{font-size:18px;font-weight:700;margin-top:4px}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <a href="index.html" class="back">← Back</a>
+  </div>
+  <h1>Elbow Pass-Through Checker (Long Radius)</h1>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label>Pipe Outside Diameter (OD) — mm</label>
+        <input type="number" id="od" placeholder="e.g. 168.3">
+      </div>
+      <div>
+        <label>Nominal Bore (NB) — inches (LR: CLR = 1.5 × NB × 25.4)</label>
+        <input type="number" id="nb" placeholder="e.g. 6">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Elbow Angle (°)</label>
+        <input type="number" id="theta" placeholder="e.g. 90" value="90">
+      </div>
+      <div>
+        <label>Entry Straight before elbow (mm)</label>
+        <input type="number" id="L1" placeholder="0" value="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Exit Straight after elbow (mm)</label>
+        <input type="number" id="L2" placeholder="0" value="0">
+      </div>
+      <div>
+        <label>Opening Length — mm</label>
+        <input type="number" id="openL" placeholder="e.g. 250">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Opening Width — mm (elbow turns across width)</label>
+        <input type="number" id="openW" placeholder="e.g. 200">
+      </div>
+      <div>
+        <label>Tunnel Depth (thickness) — mm</label>
+        <input type="number" id="T" placeholder="e.g. 200">
+      </div>
+    </div>
+
+    <div class="note">
+      Assumes LR elbow with CLR = 1.5 × NB × 25.4. Elbow turns in the <b>Width</b> direction (worst for width). We scan the tunnel depth to find the maximum offset that must clear.
+    </div>
+
+    <button id="calc">Check & Requirements</button>
+  </div>
+
+  <div class="panel">
+    <div class="results">
+      <div class="resbox">
+        <div class="label">Fit Result (give approx. 10% clearance) </div>
+        <div id="fitStatus" class="status">—</div>
+      </div>
+
+      <div class="resbox" style="grid-column:1/-1">
+        <div class="label">Minimum Opening (for current depth)</div>
+        <div id="minOpen" class="value">—</div>
+        <div class="note">Pure minimum if you can enlarge both: Length = OD, Width = 2 × max half-width along depth.</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Keep Length as-is → Width Needed</div>
+        <div id="widReq" class="value">—</div>
+        <div class="note">Minimum width for current depth and your current length.</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Keep Width as-is → Length Needed</div>
+        <div id="lenReq" class="value">—</div>
+        <div class="note">Minimum length (typically OD) for current depth and your current width.</div>
+      </div>
+
+      <div class="resbox" style="grid-column:1/-1">
+        <div class="label">Depth Requirement (with current L & W)</div>
+        <div id="depthReq" class="value">—</div>
+        <div class="note">Max tunnel depth that still fits without changing opening length/width.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+function toRad(d){return d*Math.PI/180}
+
+// required half-width at depth z
+function halfWidthRequiredAtZ(z, od, theta, clr, L1, L2){
+  const rPipe = od/2;
+  const z1 = L1;
+  const z2 = L1 + clr * Math.sin(theta);
+  let yOff = 0;
+  if (z <= z1){
+    yOff = 0;
+  } else if (z <= z2){
+    const dz = z - z1;
+    const phi = Math.asin(Math.min(1, Math.max(0, dz / clr)));
+    yOff = clr * (1 - Math.cos(Math.min(phi, theta)));
+  } else {
+    yOff = clr * (1 - Math.cos(theta));
+  }
+  return rPipe + yOff;
+}
+
+// maximum required half-width over [0, T]
+function maxHalfWidthRequired(T, od, theta, clr, L1, L2){
+  const samples = 300;
+  let maxHW = od/2;
+  for(let i=0;i<=samples;i++){
+    const z = T * i / samples;
+    const hw = halfWidthRequiredAtZ(z, od, theta, clr, L1, L2);
+    if(hw > maxHW) maxHW = hw;
+  }
+  return maxHW;
+}
+
+// max depth T that fits with a given half-width
+function maxDepthThatFits(halfW, od, theta, clr, L1, L2){
+  const needAtEntry = maxHalfWidthRequired(0, od, theta, clr, L1, L2);
+  if (needAtEntry > halfW) return 0;
+
+  const zArc = clr * Math.sin(theta);
+  const T_full = L1 + zArc + L2;
+
+  const needFull = maxHalfWidthRequired(T_full, od, theta, clr, L1, L2);
+  if (needFull <= halfW) return T_full;
+
+  let lo = 0, hi = T_full;
+  for(let it=0; it<40; it++){
+    const mid = 0.5*(lo+hi);
+    const need = maxHalfWidthRequired(mid, od, theta, clr, L1, L2);
+    if (need <= halfW) lo = mid; else hi = mid;
+  }
+  return lo;
+}
+
+function calc(){
+  const od   = parseFloat(document.getElementById('od').value);
+  const nb   = parseFloat(document.getElementById('nb').value);
+  const thDeg= parseFloat(document.getElementById('theta').value);
+  const T    = parseFloat(document.getElementById('T').value);
+  const L1   = parseFloat(document.getElementById('L1').value) || 0;
+  const L2   = parseFloat(document.getElementById('L2').value) || 0;
+  const oL   = parseFloat(document.getElementById('openL').value);
+  const oW   = parseFloat(document.getElementById('openW').value);
+
+  const fitEl  = document.getElementById('fitStatus');
+  const depthEl= document.getElementById('depthReq');
+  const lenEl  = document.getElementById('lenReq');
+  const widEl  = document.getElementById('widReq');
+  const minEl  = document.getElementById('minOpen');
+
+  // reset views
+  fitEl.textContent='—'; fitEl.className='status';
+  [depthEl,lenEl,widEl,minEl].forEach(el=>el.textContent='—');
+
+  if([od,nb,thDeg,T,oL,oW].some(v=>!isFinite(v)||v<=0)){
+    alert('Please fill: OD, NB, angle, depth, length & width.');
+    return;
+  }
+
+  // Long Radius CLR
+  const CLR = 1.5 * nb * 25.4;
+  const theta = toRad(thDeg);
+
+  // width requirement for current depth
+  const maxHW = maxHalfWidthRequired(T, od, theta, CLR, L1, L2);
+  const minWidth  = 2 * maxHW;   // pure minimum width
+  const minLength = od;          // pure minimum length (must clear diameter)
+
+  // Overall fit with current opening
+  const overallOK = (oW >= minWidth) && (oL >= minLength);
+  fitEl.textContent = overallOK ? 'FIT' : 'NO FIT';
+  fitEl.className = 'status ' + (overallOK ? 'ok' : 'bad');
+
+  // Combined minimum opening (pure minimum)
+  minEl.textContent = `${minLength.toFixed(1)} × ${minWidth.toFixed(1)} mm`;
+
+  // Keep Length as-is → Width needed (for current depth)
+  const widthReq = minWidth;
+  const widDelta = Math.max(0, widthReq - oW);
+  widEl.textContent =
+    widDelta === 0 ? `${widthReq.toFixed(1)} mm (OK)` : `${widthReq.toFixed(1)} mm (add ~${widDelta.toFixed(1)} mm)`;
+  widEl.className = 'value ' + (widDelta===0 ? 'ok' : 'warn');
+
+  // Keep Width as-is → Length needed (for current depth)
+  const lengthReq = minLength;
+  const lenDelta  = Math.max(0, lengthReq - oL);
+  lenEl.textContent =
+    lenDelta === 0 ? `${lengthReq.toFixed(1)} mm (OK)` : `${lengthReq.toFixed(1)} mm (add ~${lenDelta.toFixed(1)} mm)`;
+  lenEl.className = 'value ' + (lenDelta===0 ? 'ok' : 'warn');
+
+  // Depth Requirement (max depth to fit with current L & W)
+  const halfW = oW/2;
+  const Treq = maxDepthThatFits(halfW, od, theta, CLR, L1, L2);
+  const needAtEntry = maxHalfWidthRequired(0, od, theta, CLR, L1, L2);
+  if (Treq <= 0 && needAtEntry > halfW) {
+    depthEl.textContent = 'Impossible without widening (too narrow at entry)';
+    depthEl.className = 'value bad';
+  } else {
+    const delta = T - Treq;
+    const txt = (delta <= 0.5)
+      ? `${Treq.toFixed(1)} mm (current depth OK up to this limit)`
+      : `≤ ${Treq.toFixed(1)} mm (reduce by ~${delta.toFixed(1)} mm)`;
+    depthEl.textContent = txt;
+    depthEl.className = 'value ' + (T <= Treq ? 'ok' : 'warn');
+  }
+}
+
+document.getElementById('calc').addEventListener('click', calc);
+</script>
+</body>
+</html>
