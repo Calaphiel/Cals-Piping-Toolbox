@@ -518,11 +518,11 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
   const angleRad = angleDeg * Math.PI / 180;
   const phiStep = 360 / divisions;
 
-  // new circumference + mm per degree
+  // circumference + mm per degree
   const circumference = Math.PI * B_OD;
   const mmPerDeg = circumference / 360;
 
-  // display summary above table
+  // summary panel
   let html = `
     <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;">
       <div><span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br><span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span></div>
@@ -532,28 +532,38 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
 
   html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
 
-  for (let i = 0; i < divisions; i++) {
-    const phi = phiStep * i;
+  // calculate and store points (so we can repeat the first one at the end)
+  const rows = [];
+
+  for (let i = 0; i <= divisions; i++) {
+    const phi = (i === divisions ? 360 : i * phiStep);
     const phiRad = phi * Math.PI / 180;
     const sqrtArg = H * H - Math.pow(B * Math.sin(phiRad), 2);
-    const arcMM = circumference * (phi / 360); // new arc distance column
+    const arcMM = circumference * (phi / 360);
+    let cut = NaN;
 
-    if (sqrtArg < 0) {
-      html += `<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>${arcMM.toFixed(2)}</td><td>NaN</td></tr>`;
-      continue;
+    if (sqrtArg >= 0 && Math.sin(angleRad) !== 0 && Math.tan(angleRad) !== 0) {
+      const part1 = (H - Math.sqrt(sqrtArg)) / Math.sin(angleRad);
+      const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
+      cut = part1 + part2;
     }
 
-    const part1 = (H - Math.sqrt(sqrtArg)) / Math.sin(angleRad);
-    const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
-    const cut = part1 + part2;
-
-    html += `<tr>
-      <td>${i+1}</td>
-      <td>${phi.toFixed(2)}</td>
-      <td>${arcMM.toFixed(2)}</td>
-      <td>${cut.toFixed(2)}</td>
-    </tr>`;
+    rows.push({
+      index: i,
+      phi,
+      arcMM,
+      cut
+    });
   }
+
+  // now print table
+  rows.forEach((r, idx) => {
+    const divLabel = idx === 0 ? 0 : idx; // label first as 0
+    const phiLabel = r.phi.toFixed(2);
+    const arcLabel = r.arcMM.toFixed(2);
+    const cutLabel = isFinite(r.cut) ? r.cut.toFixed(2) : 'NaN';
+    html += `<tr><td>${divLabel}</td><td>${phiLabel}</td><td>${arcLabel}</td><td>${cutLabel}</td></tr>`;
+  });
 
   html += '</table>';
   document.getElementById('lat-results').innerHTML = html;
