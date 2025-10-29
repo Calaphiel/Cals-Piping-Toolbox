@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+p<!DOCTYPE html>
 <html lang="en">
 <head>
 
@@ -497,28 +497,66 @@ gskRender('PN10');
 
 /* ---------------- LATERAL ---------------- */
 document.getElementById('lat-go').addEventListener('click', ()=>{
-  const H_OD=parseFloat(document.getElementById('lat-headerOD').value);
-  const B_OD=parseFloat(document.getElementById('lat-branchOD').value);
-  const B_ID=parseFloat(document.getElementById('lat-branchID').value);
-  const angleDeg=parseFloat(document.getElementById('lat-angle').value);
-  const divisions=parseInt(document.getElementById('lat-divisions').value);
-  if([H_OD,B_OD,angleDeg,divisions].some(v=>!isFinite(v))){ alert("Please enter valid numbers for all required fields."); return; }
-  const H=H_OD/2, B=(isFinite(B_ID) ? B_ID/2 : B_OD/2);
-  if(B>H){ alert("Branch radius is larger than header radius! Check your inputs."); return; }
-  const angleRad=angleDeg*Math.PI/180;
-  const phiStep=360/divisions;
-  let html='<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Cut Height (mm)</th></tr>';
-  for(let i=0;i<divisions;i++){
-    const phi=phiStep*i, phiRad=phi*Math.PI/180;
-    const sqrtArg=H*H - Math.pow(B*Math.sin(phiRad),2);
-    if(sqrtArg<0){ html+=`<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>NaN</td></tr>`; continue; }
-    const part1=(H-Math.sqrt(sqrtArg))/Math.sin(angleRad);
-    const part2=B*(1-Math.cos(phiRad))/Math.tan(angleRad);
-    const cut=part1+part2;
-    html+=`<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>${cut.toFixed(2)}</td></tr>`;
+  const H_OD = parseFloat(document.getElementById('lat-headerOD').value);
+  const B_OD = parseFloat(document.getElementById('lat-branchOD').value);
+  const B_ID = parseFloat(document.getElementById('lat-branchID').value);
+  const angleDeg = parseFloat(document.getElementById('lat-angle').value);
+  const divisions = parseInt(document.getElementById('lat-divisions').value);
+
+  if ([H_OD, B_OD, angleDeg, divisions].some(v => !isFinite(v))) {
+    alert("Please enter valid numbers for all required fields.");
+    return;
   }
-  html+='</table>';
-  document.getElementById('lat-results').innerHTML=html;
+
+  const H = H_OD / 2;
+  const B = isFinite(B_ID) ? B_ID / 2 : B_OD / 2;
+  if (B > H) {
+    alert("Branch radius is larger than header radius! Check your inputs.");
+    return;
+  }
+
+  const angleRad = angleDeg * Math.PI / 180;
+  const phiStep = 360 / divisions;
+
+  // new circumference + mm per degree
+  const circumference = Math.PI * B_OD;
+  const mmPerDeg = circumference / 360;
+
+  // display summary above table
+  let html = `
+    <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;">
+      <div><span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br><span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span></div>
+      <div><span style="color:#94a3b8;font-size:13px;">mm per Degree:</span><br><span style="color:#7dd3fc;font-size:16px;">${mmPerDeg.toFixed(3)} mm/°</span></div>
+    </div>
+  `;
+
+  html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
+
+  for (let i = 0; i < divisions; i++) {
+    const phi = phiStep * i;
+    const phiRad = phi * Math.PI / 180;
+    const sqrtArg = H * H - Math.pow(B * Math.sin(phiRad), 2);
+    const arcMM = circumference * (phi / 360); // new arc distance column
+
+    if (sqrtArg < 0) {
+      html += `<tr><td>${i+1}</td><td>${phi.toFixed(2)}</td><td>${arcMM.toFixed(2)}</td><td>NaN</td></tr>`;
+      continue;
+    }
+
+    const part1 = (H - Math.sqrt(sqrtArg)) / Math.sin(angleRad);
+    const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
+    const cut = part1 + part2;
+
+    html += `<tr>
+      <td>${i+1}</td>
+      <td>${phi.toFixed(2)}</td>
+      <td>${arcMM.toFixed(2)}</td>
+      <td>${cut.toFixed(2)}</td>
+    </tr>`;
+  }
+
+  html += '</table>';
+  document.getElementById('lat-results').innerHTML = html;
 });
 
 /* ---------------- ROLLING OFFSET ---------------- */
