@@ -10,9 +10,10 @@
   h1{margin:0;font-size:20px}
   svg{max-width:460px;width:100%;margin:16px auto 8px auto;display:block}
   input{
-    width:60px;font-size:13px;padding:3px;
-    border-radius:5px;border:1px solid #444;background:#2b2b2b;
-    color:#fff;text-align:center;
+    width:100px; /* wider so 60 shows fully on iOS */
+    font-size:13px;padding:6px 8px;
+    border-radius:6px;border:1px solid #444;background:#2b2b2b;
+    color:#fff;text-align:center;box-sizing:border-box;
   }
   button{margin:6px;padding:8px 14px;border:none;border-radius:6px;background:#007bff;color:#fff;font-size:13px;cursor:pointer}
   button:disabled{background:#555;cursor:not-allowed}
@@ -42,14 +43,14 @@
   <text x="20"  y="125" class="label">Opposite (a)</text>
   <text x="180" y="90"  class="label">Hypotenuse (c)</text>
   <text x="240" y="248" class="label">Angle B (°)</text>
-  <text x="25" y="10"  class="label">Angle C (°)</text>
+  <text x="25"  y="10"  class="label">Angle C (°)</text>
 
-  <!-- Inputs -->
-  <foreignObject x="130" y="210" width="65" height="24"><input id="b" type="number" placeholder="b"></foreignObject>
-  <foreignObject x="15"  y="130" width="65" height="24"><input id="a" type="number" placeholder="a"></foreignObject>
-  <foreignObject x="180" y="98"  width="65" height="24"><input id="c" type="number" placeholder="c"></foreignObject>
-  <foreignObject x="240" y="212" width="65" height="24"><input id="B" type="number" placeholder="B"></foreignObject>
-  <foreignObject x="25" y="10"  width="65" height="24"><input id="C" type="number" placeholder="C"></foreignObject>
+  <!-- Inputs (wider boxes) -->
+  <foreignObject x="110" y="206" width="110" height="30"><input id="b" type="number" inputmode="decimal" placeholder="b"></foreignObject>
+  <foreignObject x="10"  y="128" width="110" height="30"><input id="a" type="number" inputmode="decimal" placeholder="a"></foreignObject>
+  <foreignObject x="170" y="96"  width="110" height="30"><input id="c" type="number" inputmode="decimal" placeholder="c"></foreignObject>
+  <foreignObject x="230" y="210" width="110" height="30"><input id="B" type="number" inputmode="decimal" placeholder="B"></foreignObject>
+  <foreignObject x="10"  y="8"   width="110" height="30"><input id="C" type="number" inputmode="decimal" placeholder="C"></foreignObject>
 </svg>
 
 <div>
@@ -70,55 +71,32 @@ function solve(){
   let B = parseFloat(document.getElementById('B').value);
   let C = parseFloat(document.getElementById('C').value);
 
-try {
-  if (a && b) {
-    c = Math.sqrt(a*a + b*b);
-    B = toDeg(Math.atan2(a, b));
-    C = 90 - B;
-  }
-  else if (a && c) {
-    if (c <= a) throw new Error();
-    b = Math.sqrt(c*c - a*a);
-    B = toDeg(Math.asin(a/c));
-    C = 90 - B;
-  }
-  else if (b && c) {
-    if (c <= b) throw new Error();
-    a = Math.sqrt(c*c - b*b);
-    B = toDeg(Math.acos(b/c));
-    C = 90 - B;
-  }
-  else if (B) {
-    B = clampAngle(B);
-    C = 90 - B;
-    if (a) {
-      b = a * Math.tan(toRad(B));
-      c = a / Math.cos(toRad(B));
-    } else if (b) {
-      a = b / Math.tan(toRad(B));
-      c = b / Math.sin(toRad(B));
-    } else if (c) {
-      a = c * Math.cos(toRad(B));
-      b = c * Math.sin(toRad(B));
+  try{
+    if(a&&b){ // two legs
+      c=Math.sqrt(a*a+b*b); B=toDeg(Math.atan2(a,b)); C=90-B;
     }
-  }
-  else if (C) {
-    C = clampAngle(C);
-    B = 90 - C;
-    if (a) { // a is adjacent to C
-      b = a * Math.tan(toRad(C));
-      c = a / Math.cos(toRad(C));
-    } else if (b) { // b is opposite to C
-      a = b / Math.tan(toRad(C));
-      c = b / Math.sin(toRad(C));
-    } else if (c) { // c is hypotenuse
-      a = c * Math.cos(toRad(C));
-      b = c * Math.sin(toRad(C));
+    else if(a&&c){ // opposite + hyp
+      if(c<=a)throw new Error(); b=Math.sqrt(c*c-a*a); B=toDeg(Math.asin(a/c)); C=90-B;
     }
-  }
-  else {
-    throw new Error();
-  }
+    else if(b&&c){ // adjacent + hyp
+      if(c<=b)throw new Error(); a=Math.sqrt(c*c-b*b); B=toDeg(Math.acos(b/c)); C=90-B;
+    }
+    else if(B){ // angle B + one side
+      B=clampAngle(B); C=90-B;
+      if(a){ b=a/Math.tan(toRad(B)); c=a/Math.sin(toRad(B)); }
+      else if(b){ a=b*Math.tan(toRad(B)); c=b/Math.cos(toRad(B)); }
+      else if(c){ a=c*Math.sin(toRad(B)); b=c*Math.cos(toRad(B)); }
+      else throw new Error();
+    }
+    else if(C){ // angle C + one side  (FIXED & VERIFIED)
+      C=clampAngle(C); B=90-C;
+      // tan(C) = b/a,  sin(C) = b/c,  cos(C) = a/c
+      if(a){ b=a*Math.tan(toRad(C)); c=a/Math.cos(toRad(C)); }
+      else if(b){ a=b/Math.tan(toRad(C)); c=b/Math.sin(toRad(C)); }
+      else if(c){ a=c*Math.cos(toRad(C)); b=c*Math.sin(toRad(C)); }
+      else throw new Error();
+    }
+    else { throw new Error(); }
 
     // update boxes
     document.getElementById('a').value=a.toFixed(2);
