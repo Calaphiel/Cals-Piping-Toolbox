@@ -1,4 +1,4 @@
-p<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 
@@ -56,7 +56,6 @@ if ("serviceWorker" in navigator) {
     .then(() => console.log("Service Worker registered"));
 }
 </script>
-
 
 <header><h1>Pipefitter’s Toolbox</h1></header>
 
@@ -118,37 +117,35 @@ if ("serviceWorker" in navigator) {
   </div>
 </section>
 
+<!-- TORQUE -->
+<section id="tool-torque" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Metric Bolt Torque Chart</h2></div>
+  <div class="panel">
+    <label>Select Bolt Size</label>
+    <select id="torque-boltSelect">
+      <option value="">-- Choose --</option>
+      <option>M6</option><option>M8</option><option>M10</option><option>M12</option>
+      <option>M14</option><option>M16</option><option>M18</option><option>M20</option>
+      <option>M22</option><option>M24</option><option>M27</option><option>M30</option>
+      <option>M33</option><option>M36</option>
+    </select>
+    <button id="torque-unitToggle">Show in ft·lbf</button>
+    <div id="torque-result" class="value" style="margin-top:8px"></div>
+  </div>
+  <div class="panel">
+    <h2>Reference Table — Recommended Torque</h2>
+    <table>
+      <thead>
+        <tr><th>Bolt Size</th><th>Carbon Steel (Dry)</th><th>Carbon Steel (Lubed)</th><th>Stainless Steel</th></tr>
+      </thead>
+      <tbody id="torque-table"></tbody>
+    </table>
+  </div>
+</section>
 
-  <!-- TORQUE -->
-  <section id="tool-torque" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Metric Bolt Torque Chart</h2></div>
-    <div class="panel">
-      <label>Select Bolt Size</label>
-      <select id="torque-boltSelect">
-        <option value="">-- Choose --</option>
-        <option>M6</option><option>M8</option><option>M10</option><option>M12</option>
-        <option>M14</option><option>M16</option><option>M18</option><option>M20</option>
-        <option>M22</option><option>M24</option><option>M27</option><option>M30</option>
-        <option>M33</option><option>M36</option>
-      </select>
-      <button id="torque-unitToggle">Show in ft·lbf</button>
-      <div id="torque-result" class="value" style="margin-top:8px"></div>
-    </div>
-    <div class="panel">
-      <h2>Reference Table — Recommended Torque</h2>
-      <table>
-        <thead>
-          <tr><th>Bolt Size</th><th>Carbon Steel (Dry)</th><th>Carbon Steel (Lubed)</th><th>Stainless Steel</th></tr>
-        </thead>
-        <tbody id="torque-table"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- ARC / RADIUS -->
-<!-- ELBOW TAKEOFF -->
-<section id="elbow" class="page">
-  <h2>Elbow Takeoff</h2>
+<!-- PIPE RADIUS & ARC (Elbow Takeoff) -->
+<section id="tool-arc" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Elbow Takeoff</h2></div>
   <div class="panel">
     <label>Degree (θ)</label>
     <input type="number" id="e_deg" placeholder="e.g. 90">
@@ -174,7 +171,6 @@ if ("serviceWorker" in navigator) {
         <div class="note">CTF = tan(θ/2) × CLR</div>
       </div>
 
-      <!-- NEW: Parallel Centre Shift (third box) -->
       <div class="resbox">
         <div class="label">Parallel Centre Shift (one elbow)</div>
         <div class="value" id="e_pcs">— mm</div>
@@ -206,156 +202,155 @@ if ("serviceWorker" in navigator) {
       </div>
     </div>
   </div>
-  <button class="btn back" onclick="showPage('home')">⬅ Back</button>
 </section>
 
-  <!-- GASKETS -->
-  <section id="tool-gaskets" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>PN Gasket Dimensions</h2></div>
-    <div class="panel">
-      <label>Select Pressure Rating</label>
-      <select id="gsk-pnSelect">
-        <option value="PN10" selected>PN10</option>
-        <option value="PN16">PN16</option>
-        <option value="PN40">PN40</option>
-      </select>
-    </div>
-    <div class="panel">
-      <h2 id="gsk-chartTitle">EN 1092-1 — PN10 Flat Ring Gaskets</h2>
-      <table>
-        <thead>
-          <tr><th>DN</th><th>Nominal Bore (in)</th><th>Inside Ø (mm)</th><th>Outside Ø (mm)</th><th>Thickness (mm)</th></tr>
-        </thead>
-        <tbody id="gsk-table"></tbody>
-      </table>
-      <p class="note">Values are typical EN 1092-1 flat ring gasket dimensions. Confirm with supplier for critical service.</p>
-    </div>
-  </section>
+<!-- GASKETS -->
+<section id="tool-gaskets" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>PN Gasket Dimensions</h2></div>
+  <div class="panel">
+    <label>Select Pressure Rating</label>
+    <select id="gsk-pnSelect">
+      <option value="PN10" selected>PN10</option>
+      <option value="PN16">PN16</option>
+      <option value="PN40">PN40</option>
+    </select>
+  </div>
+  <div class="panel">
+    <h2 id="gsk-chartTitle">EN 1092-1 — PN10 Flat Ring Gaskets</h2>
+    <table>
+      <thead>
+        <tr><th>DN</th><th>Nominal Bore (in)</th><th>Inside Ø (mm)</th><th>Outside Ø (mm)</th><th>Thickness (mm)</th></tr>
+      </thead>
+      <tbody id="gsk-table"></tbody>
+    </table>
+    <p class="note">Values are typical EN 1092-1 flat ring gasket dimensions. Confirm with supplier for critical service.</p>
+  </div>
+</section>
 
-  <!-- LATERAL BRANCH CUTS -->
-  <section id="tool-lateral" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
-    <div class="panel">
-      <label>Header OD (mm)</label>
-      <input type="number" id="lat-headerOD" value="304.8">
-      <label>Branch OD (mm)</label>
-      <input type="number" id="lat-branchOD" value="254">
-      <label>Branch ID (mm, optional)</label>
-      <input type="number" id="lat-branchID" placeholder="Optional">
-      <label>Lateral Angle (degrees)</label>
-      <input type="number" id="lat-angle" value="45">
-      <label>Number of Divisions</label>
-      <input type="number" id="lat-divisions" value="16">
-      <button id="lat-go">Calculate Cut Points</button>
-    </div>
-    <div class="panel" id="lat-results"></div>
-  </section>
+<!-- LATERAL BRANCH CUTS -->
+<section id="tool-lateral" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
+  <div class="panel">
+    <label>Header OD (mm)</label>
+    <input type="number" id="lat-headerOD" value="304.8">
+    <label>Branch OD (mm)</label>
+    <input type="number" id="lat-branchOD" value="254">
+    <label>Branch ID (mm, optional)</label>
+    <input type="number" id="lat-branchID" placeholder="Optional">
+    <label>Lateral Angle (degrees)</label>
+    <input type="number" id="lat-angle" value="45">
+    <label>Number of Divisions</label>
+    <input type="number" id="lat-divisions" value="16">
+    <button id="lat-go">Calculate Cut Points</button>
+  </div>
+  <div class="panel" id="lat-results"></div>
+</section>
 
-  <!-- REFERENCE -->
-  <section id="tool-reference" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Reference Formulas</h2></div>
-    <div class="panel">
-      <h2>Basic Geometry</h2>
-      <p><b>Circumference</b> = π × Diameter</p>
-      <p><b>Area of Circle</b> = π × (Radius²)</p>
-      <p><b>Pythagoras (Right Triangle)</b> = √(Adjacent² + Opposite²) = Hypotenuse</p>
-    </div>
-    <div class="panel">
-      <h2>Pipe Layout</h2>
-      <p><b>Elbow Takeoff (LR)</b> = 1.5 × NB (inches) × 25.4</p>
-      <p><b>Elbow Takeoff (SR)</b> = 1.0 × NB (inches) × 25.4</p>
-      <p><b>Centre to Face</b> = tan(Angle ÷ 2) × CLR</p>
-      <p><b>Miter Cutback</b> = CLR × tan(Angle ÷ 2)</p>
-    </div>
-    <div class="panel">
-      <h2>Offsets</h2>
-      <p><b>Simple Offset Travel</b> = √(Run² + Set²)</p>
-      <p><b>Rolling Offset Travel</b> = √(Run² + Set² + Roll²)</p>
-      <p><b>Bend Angle</b> = atan(Offset ÷ Run)</p>
-      <p><b>Roll (Twist) Angle</b> = atan(Roll ÷ Set)</p>
-      <p><b>Non-Parallel Offset Angle</b> = arccos(Roll ÷ Travel)</p>
-    </div>
-    <div class="panel">
-      <h2>Pipe Properties</h2>
-      <p><b>Weight per metre</b> = (π/4) × (OD² − ID²) × Density</p>
-      <p><b>Internal Volume per metre</b> = (π/4) × (ID²) × 0.001 (litres)</p>
-      <p><b>Surface Area (external)</b> = π × OD × Length</p>
-      <p><b>Thermal Expansion</b> = Coefficient × Length × ΔT</p>
-    </div>
-    <div class="panel">
-      <h2>Trigonometry Basics</h2>
-      <p><b>sin(θ)</b> = Opposite ÷ Hypotenuse</p>
-      <p><b>cos(θ)</b> = Adjacent ÷ Hypotenuse</p>
-      <p><b>tan(θ)</b> = Opposite ÷ Adjacent</p>
-      <p><b>Inverse:</b> θ = sin⁻¹, cos⁻¹, tan⁻¹ of the ratio</p>
-    </div>
-  </section>
+<!-- REFERENCE -->
+<section id="tool-reference" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Reference Formulas</h2></div>
+  <div class="panel">
+    <h2>Basic Geometry</h2>
+    <p><b>Circumference</b> = π × Diameter</p>
+    <p><b>Area of Circle</b> = π × (Radius²)</p>
+    <p><b>Pythagoras (Right Triangle)</b> = √(Adjacent² + Opposite²) = Hypotenuse</p>
+  </div>
+  <div class="panel">
+    <h2>Pipe Layout</h2>
+    <p><b>Elbow Takeoff (LR)</b> = 1.5 × NB (inches) × 25.4</p>
+    <p><b>Elbow Takeoff (SR)</b> = 1.0 × NB (inches) × 25.4</p>
+    <p><b>Centre to Face</b> = tan(Angle ÷ 2) × CLR</p>
+    <p><b>Miter Cutback</b> = CLR × tan(Angle ÷ 2)</p>
+  </div>
+  <div class="panel">
+    <h2>Offsets</h2>
+    <p><b>Simple Offset Travel</b> = √(Run² + Set²)</p>
+    <p><b>Rolling Offset Travel</b> = √(Run² + Set² + Roll²)</p>
+    <p><b>Bend Angle</b> = atan(Offset ÷ Run)</p>
+    <p><b>Roll (Twist) Angle</b> = atan(Roll ÷ Set)</p>
+    <p><b>Non-Parallel Offset Angle</b> = arccos(Roll ÷ Travel)</p>
+  </div>
+  <div class="panel">
+    <h2>Pipe Properties</h2>
+    <p><b>Weight per metre</b> = (π/4) × (OD² − ID²) × Density</p>
+    <p><b>Internal Volume per metre</b> = (π/4) × (ID²) × 0.001 (litres)</p>
+    <p><b>Surface Area (external)</b> = π × OD × Length</p>
+    <p><b>Thermal Expansion</b> = Coefficient × Length × ΔT</p>
+  </div>
+  <div class="panel">
+    <h2>Trigonometry Basics</h2>
+    <p><b>sin(θ)</b> = Opposite ÷ Hypotenuse</p>
+    <p><b>cos(θ)</b> = Adjacent ÷ Hypotenuse</p>
+    <p><b>tan(θ)</b> = Opposite ÷ Adjacent</p>
+    <p><b>Inverse:</b> θ = sin⁻¹, cos⁻¹, tan⁻¹ of the ratio</p>
+  </div>
+</section>
 
-  <!-- ROLLING OFFSET -->
-  <section id="tool-rolling" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Rolling Offset — Cut, Roll, Pup & Circumference</h2></div>
-    <div class="panel">
-      <label>Run length (mm)</label>
-      <input type="number" id="roll-run" placeholder="e.g. 600">
-      <label>Set length (mm)</label>
-      <input type="number" id="roll-set" placeholder="e.g. 200">
-      <label>Roll length (mm)</label>
-      <input type="number" id="roll-roll" placeholder="e.g. 150">
-      <label>Nominal Bore (NB) — inches (optional)</label>
-      <input type="number" id="roll-nb" placeholder="e.g. 6">
-      <label>Elbow type (for NB)</label>
-      <select id="roll-type">
-        <option value="LR" selected>Long Radius (1.5D)</option>
-        <option value="SR">Short Radius (1.0D)</option>
-      </select>
-      <label>Pipe Outside Diameter (OD) — mm (optional)</label>
-      <input type="number" id="roll-od" placeholder="e.g. 168.3">
-      <div class="note">
-        • Travel = √(Run² + Set² + Roll²)<br>
-        • Bend (cut) angle = atan( √(Set² + Roll²) ÷ Run ) → degrees<br>
-        • Roll (twist) angle = atan( Roll ÷ Set ) → degrees<br>
-        • Pup length requires NB + elbow type<br>
-        • Circumference/mm per degree requires OD
-      </div>
-      <button id="roll-go">Calculate</button>
+<!-- ROLLING OFFSET -->
+<section id="tool-rolling" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Rolling Offset — Cut, Roll, Pup & Circumference</h2></div>
+  <div class="panel">
+    <label>Run length (mm)</label>
+    <input type="number" id="roll-run" placeholder="e.g. 600">
+    <label>Set length (mm)</label>
+    <input type="number" id="roll-set" placeholder="e.g. 200">
+    <label>Roll length (mm)</label>
+    <input type="number" id="roll-roll" placeholder="e.g. 150">
+    <label>Nominal Bore (NB) — inches (optional)</label>
+    <input type="number" id="roll-nb" placeholder="e.g. 6">
+    <label>Elbow type (for NB)</label>
+    <select id="roll-type">
+      <option value="LR" selected>Long Radius (1.5D)</option>
+      <option value="SR">Short Radius (1.0D)</option>
+    </select>
+    <label>Pipe Outside Diameter (OD) — mm (optional)</label>
+    <input type="number" id="roll-od" placeholder="e.g. 168.3">
+    <div class="note">
+      • Travel = √(Run² + Set² + Roll²)<br>
+      • Bend (cut) angle = atan( √(Set² + Roll²) ÷ Run ) → degrees<br>
+      • Roll (twist) angle = atan( Roll ÷ Set ) → degrees<br>
+      • Pup length requires NB + elbow type<br>
+      • Circumference/mm per degree requires OD
     </div>
-    <div id="roll-results" class="panel hidden">
-      <div class="results">
-        <div class="resbox"><div class="label">Travel length</div><div class="value" id="roll-travel">—</div></div>
-        <div class="resbox"><div class="label">Bend (cut) angle</div><div class="value" id="roll-bend">—</div></div>
-        <div class="resbox"><div class="label">Roll (twist) angle</div><div class="value" id="roll-twist">—</div></div>
-        <div class="resbox"><div class="label">Takeout per elbow</div><div class="value" id="roll-takeout">—</div></div>
-        <div class="resbox"><div class="label">Pup length</div><div class="value" id="roll-pup">—</div></div>
-        <div class="resbox"><div class="label">Circumference</div><div class="value" id="roll-circ">—</div></div>
-        <div class="resbox"><div class="label">mm per degree</div><div class="value" id="roll-mmdeg">—</div></div>
-      </div>
+    <button id="roll-go">Calculate</button>
+  </div>
+  <div id="roll-results" class="panel hidden">
+    <div class="results">
+      <div class="resbox"><div class="label">Travel length</div><div class="value" id="roll-travel">—</div></div>
+      <div class="resbox"><div class="label">Bend (cut) angle</div><div class="value" id="roll-bend">—</div></div>
+      <div class="resbox"><div class="label">Roll (twist) angle</div><div class="value" id="roll-twist">—</div></div>
+      <div class="resbox"><div class="label">Takeout per elbow</div><div class="value" id="roll-takeout">—</div></div>
+      <div class="resbox"><div class="label">Pup length</div><div class="value" id="roll-pup">—</div></div>
+      <div class="resbox"><div class="label">Circumference</div><div class="value" id="roll-circ">—</div></div>
+      <div class="resbox"><div class="label">mm per degree</div><div class="value" id="roll-mmdeg">—</div></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- THERMAL EXPANSION -->
-  <section id="tool-expansion" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Pipe Thermal Expansion</h2></div>
-    <div class="panel">
-      <label>Pipe Length (m)</label>
-      <input type="number" id="exp-length" placeholder="e.g. 30">
-      <label>Temperature Change (ΔT °C)</label>
-      <input type="number" id="exp-dt" placeholder="e.g. 80">
-      <label>Material</label>
-      <select id="exp-mat">
-        <option value="0.012">Carbon Steel (0.012 mm/m·°C)</option>
-        <option value="0.017">Stainless Steel (0.017 mm/m·°C)</option>
-        <option value="0.017">Copper (0.017 mm/m·°C)</option>
-        <option value="0.060">PVC (0.060 mm/m·°C)</option>
-      </select>
-      <button id="exp-go">Calculate Expansion</button>
+<!-- THERMAL EXPANSION -->
+<section id="tool-expansion" class="hidden">
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Pipe Thermal Expansion</h2></div>
+  <div class="panel">
+    <label>Pipe Length (m)</label>
+    <input type="number" id="exp-length" placeholder="e.g. 30">
+    <label>Temperature Change (ΔT °C)</label>
+    <input type="number" id="exp-dt" placeholder="e.g. 80">
+    <label>Material</label>
+    <select id="exp-mat">
+      <option value="0.012">Carbon Steel (0.012 mm/m·°C)</option>
+      <option value="0.017">Stainless Steel (0.017 mm/m·°C)</option>
+      <option value="0.017">Copper (0.017 mm/m·°C)</option>
+      <option value="0.060">PVC (0.060 mm/m·°C)</option>
+    </select>
+    <button id="exp-go">Calculate Expansion</button>
+  </div>
+  <div id="exp-results" class="panel hidden">
+    <div class="results">
+      <div class="resbox"><div class="label">Expansion (ΔL)</div><div class="value" id="expansion-val">—</div></div>
     </div>
-    <div id="exp-results" class="panel hidden">
-      <div class="results">
-        <div class="resbox"><div class="label">Expansion (ΔL)</div><div class="value" id="expansion-val">—</div></div>
-      </div>
-      <p class="note">Formula: ΔL = α × L × ΔT &nbsp; (α in mm/m·°C; L in m ⇒ ΔL in mm)</p>
-    </div>
-  </section>
+    <p class="note">Formula: ΔL = α × L × ΔT &nbsp; (α in mm/m·°C; L in m ⇒ ΔL in mm)</p>
+  </div>
+</section>
 
 </main>
 
@@ -420,9 +415,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
   res.textContent = `${v}: Carbon Steel (Dry) = ${torqueToUnit(t.dry)} | Carbon Steel (Lubed) = ${torqueToUnit(t.lube)} | Stainless Steel = ${torqueToUnit(t.ss)}`;
 });
 
-/* ---------------- ARC / RADIUS ---------------- */
-/* ---------------- ARC / RADIUS ---------------- */
-/* ===== Elbow Takeoff logic (namespaced with e_) ===== */
+/* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
 (function(){
   function fmt(v){ return Number(v).toFixed(3); }
   function calc(){
@@ -446,7 +439,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_ctf').textContent = '— mm';
     }
 
-    // Parallel Centre Shift (PCS)
+    // Parallel Centre Shift (PCS) = CLR × (1 − cos θ)
     if(!isNaN(clr) && !isNaN(deg)){
       const rad = deg * Math.PI / 180;
       const pcs = clr * (1 - Math.cos(rad));
@@ -455,7 +448,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_pcs').textContent = '— mm';
     }
 
-    // Internal / External radii
+    // Internal/External radii
     let rInt = NaN, rExt = NaN;
     if(!isNaN(clr) && !isNaN(odMm)){
       rInt = clr - odMm/2;
@@ -479,7 +472,6 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_lExt').textContent = '— mm';
     }
   }
-
   ['e_deg','e_nb','e_od'].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
@@ -585,7 +577,7 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
 
   html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
 
-  // calculate and store points (so we can repeat the first one at the end)
+  // calculate and store points
   const rows = [];
 
   for (let i = 0; i <= divisions; i++) {
@@ -609,7 +601,7 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
     });
   }
 
-  // now print table
+  // print table
   rows.forEach((r, idx) => {
     const divLabel = idx === 0 ? 0 : idx; // label first as 0
     const phiLabel = r.phi.toFixed(2);
