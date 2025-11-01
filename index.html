@@ -421,7 +421,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 });
 
 /* ---------------- ARC / RADIUS ---------------- */
-<script>
+/* ---------------- ARC / RADIUS ---------------- */
 /* ===== Elbow Takeoff logic (namespaced with e_) ===== */
 (function(){
   function fmt(v){ return Number(v).toFixed(3); }
@@ -446,7 +446,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_ctf').textContent = '— mm';
     }
 
-    // NEW: Parallel Centre Shift (PCS) = CLR × (1 − cos θ)
+    // Parallel Centre Shift (PCS)
     if(!isNaN(clr) && !isNaN(deg)){
       const rad = deg * Math.PI / 180;
       const pcs = clr * (1 - Math.cos(rad));
@@ -455,7 +455,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_pcs').textContent = '— mm';
     }
 
-    // Internal/External radii
+    // Internal / External radii
     let rInt = NaN, rExt = NaN;
     if(!isNaN(clr) && !isNaN(odMm)){
       rInt = clr - odMm/2;
@@ -479,6 +479,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_lExt').textContent = '— mm';
     }
   }
+
   ['e_deg','e_nb','e_od'].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
@@ -486,7 +487,6 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
   });
   calc();
 })();
-</script>
 
 /* ---------------- GASKETS ---------------- */
 const gasketData = {
