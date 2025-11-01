@@ -146,51 +146,68 @@ if ("serviceWorker" in navigator) {
   </section>
 
   <!-- ARC / RADIUS -->
-  <section id="tool-arc" class="hidden">
-    <div class="topbar"><span class="back" data-home>← Back</span><h2>Pipe Radius & Arc Calculator</h2></div>
-    <div class="panel">
-      <label>Degree (θ)</label>
-      <input type="number" id="arc-deg" placeholder="e.g. 90">
-      <label>Nominal Bore (NB) — inches</label>
-      <input type="number" id="arc-nb" placeholder="e.g. 2">
-      <label>Outside Diameter (OD) — mm</label>
-      <input type="number" id="arc-od" placeholder="Enter OD (mm)">
-      <div class="warn" id="arc-warn"></div>
+<!-- ELBOW TAKEOFF -->
+<section id="elbow" class="page">
+  <h2>Elbow Takeoff</h2>
+  <div class="panel">
+    <label>Degree (θ)</label>
+    <input type="number" id="e_deg" placeholder="e.g. 90">
 
-      <div class="results">
-        <div class="resbox">
-          <div class="label">Centre Line Radius (CLR)</div>
-          <div class="value" id="arc-clr">— mm</div>
-          <div class="note">CLR = 1.5 × NB (in) × 25.4</div>
-        </div>
-        <div class="resbox">
-          <div class="label">Centre To Face</div>
-          <div class="value" id="arc-ctf">— mm</div>
-          <div class="note">CTF = tan(θ/2) × CLR</div>
-        </div>
-        <div class="resbox">
-          <div class="label">Internal Radius</div>
-          <div class="value" id="arc-rInt">— mm</div>
-          <div class="note">Rint = CLR − OD/2</div>
-        </div>
-        <div class="resbox">
-          <div class="label">External Radius</div>
-          <div class="value" id="arc-rExt">— mm</div>
-          <div class="note">Rext = CLR + OD/2</div>
-        </div>
-        <div class="resbox">
-          <div class="label">Internal Arc Length</div>
-          <div class="value" id="arc-lInt">— mm</div>
-          <div class="note">Lint = Rint × π × θ/180</div>
-        </div>
-        <div class="resbox">
-          <div class="label">External Arc Length</div>
-          <div class="value" id="arc-lExt">— mm</div>
-          <div class="note">Lext = Rext × π × θ/180</div>
-        </div>
+    <label>Nominal Bore (NB) — inches</label>
+    <input type="number" id="e_nb" placeholder="e.g. 2">
+
+    <label>Outside Diameter (OD) — mm</label>
+    <input type="number" id="e_od" placeholder="Enter OD (mm)">
+
+    <div class="warn" id="e_warn"></div>
+
+    <div class="results">
+      <div class="resbox">
+        <div class="label">Centre Line Radius (CLR)</div>
+        <div class="value" id="e_clr">— mm</div>
+        <div class="note">CLR = 1.5 × NB (in) × 25.4</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Centre To Face</div>
+        <div class="value" id="e_ctf">— mm</div>
+        <div class="note">CTF = tan(θ/2) × CLR</div>
+      </div>
+
+      <!-- NEW: Parallel Centre Shift (third box) -->
+      <div class="resbox">
+        <div class="label">Parallel Centre Shift (one elbow)</div>
+        <div class="value" id="e_pcs">— mm</div>
+        <div class="note">PCS = CLR × (1 − cos(θ))</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Internal Radius</div>
+        <div class="value" id="e_rInt">— mm</div>
+        <div class="note">Rint = CLR − OD/2</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">External Radius</div>
+        <div class="value" id="e_rExt">— mm</div>
+        <div class="note">Rext = CLR + OD/2</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Internal Arc Length</div>
+        <div class="value" id="e_lInt">— mm</div>
+        <div class="note">Lint = Rint × π × θ/180</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">External Arc Length</div>
+        <div class="value" id="e_lExt">— mm</div>
+        <div class="note">Lext = Rext × π × θ/180</div>
       </div>
     </div>
-  </section>
+  </div>
+  <button class="btn back" onclick="showPage('home')">⬅ Back</button>
+</section>
 
   <!-- GASKETS -->
   <section id="tool-gaskets" class="hidden">
@@ -404,36 +421,72 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 });
 
 /* ---------------- ARC / RADIUS ---------------- */
-function fmt3(v){ return Number(v).toFixed(3); }
-function arcCalc(){
-  const deg=parseFloat(document.getElementById('arc-deg').value);
-  const nb=parseFloat(document.getElementById('arc-nb').value);
-  const od=parseFloat(document.getElementById('arc-od').value);
-  const warn=document.getElementById('arc-warn'); warn.textContent='';
-  let clr = isNaN(nb)? NaN : 1.5*nb*25.4;
-  document.getElementById('arc-clr').textContent = isNaN(clr)? '— mm' : fmt3(clr)+' mm';
-  let ctf = (!isNaN(clr) && !isNaN(deg)) ? Math.tan((deg*Math.PI/180)/2)*clr : NaN;
-  document.getElementById('arc-ctf').textContent = isNaN(ctf)? '— mm' : fmt3(ctf)+' mm';
-  let rInt=NaN, rExt=NaN;
-  if(!isNaN(clr) && !isNaN(od)){ rInt=clr-od/2; rExt=clr+od/2; }
-  document.getElementById('arc-rInt').textContent = isNaN(rInt)? '— mm' : fmt3(rInt)+' mm';
-  document.getElementById('arc-rExt').textContent = isNaN(rExt)? '— mm' : fmt3(rExt)+' mm';
-  if(!isNaN(rInt) && !isNaN(rExt) && !isNaN(deg)){
-    if(rInt<=0) warn.textContent='⚠ Internal radius ≤ 0 — OD too large for this NB.';
-    const lInt=rInt*Math.PI*deg/180, lExt=rExt*Math.PI*deg/180;
-    document.getElementById('arc-lInt').textContent=fmt3(lInt)+' mm';
-    document.getElementById('arc-lExt').textContent=fmt3(lExt)+' mm';
-  } else {
-    document.getElementById('arc-lInt').textContent='— mm';
-    document.getElementById('arc-lExt').textContent='— mm';
+<script>
+/* ===== Elbow Takeoff logic (namespaced with e_) ===== */
+(function(){
+  function fmt(v){ return Number(v).toFixed(3); }
+  function calc(){
+    const deg = parseFloat(document.getElementById('e_deg').value);
+    const nb  = parseFloat(document.getElementById('e_nb').value);
+    const odMm= parseFloat(document.getElementById('e_od').value);
+    const warn= document.getElementById('e_warn'); warn.textContent='';
+
+    // CLR
+    let clr = NaN;
+    if(!isNaN(nb)) clr = 1.5 * nb * 25.4;
+    document.getElementById('e_clr').textContent = isNaN(clr)? '— mm' : fmt(clr) + ' mm';
+
+    // CTF
+    let ctf = NaN;
+    if(!isNaN(clr) && !isNaN(deg)){
+      const rad = deg * Math.PI / 180;
+      ctf = Math.tan(rad/2) * clr;
+      document.getElementById('e_ctf').textContent = fmt(ctf) + ' mm';
+    } else {
+      document.getElementById('e_ctf').textContent = '— mm';
+    }
+
+    // NEW: Parallel Centre Shift (PCS) = CLR × (1 − cos θ)
+    if(!isNaN(clr) && !isNaN(deg)){
+      const rad = deg * Math.PI / 180;
+      const pcs = clr * (1 - Math.cos(rad));
+      document.getElementById('e_pcs').textContent = fmt(pcs) + ' mm';
+    } else {
+      document.getElementById('e_pcs').textContent = '— mm';
+    }
+
+    // Internal/External radii
+    let rInt = NaN, rExt = NaN;
+    if(!isNaN(clr) && !isNaN(odMm)){
+      rInt = clr - odMm/2;
+      rExt = clr + odMm/2;
+      document.getElementById('e_rInt').textContent = fmt(rInt) + ' mm';
+      document.getElementById('e_rExt').textContent = fmt(rExt) + ' mm';
+    } else {
+      document.getElementById('e_rInt').textContent = '— mm';
+      document.getElementById('e_rExt').textContent = '— mm';
+    }
+
+    // Arc lengths
+    if(!isNaN(rInt) && !isNaN(rExt) && !isNaN(deg)){
+      if(rInt <= 0) warn.textContent = '⚠ Internal radius ≤ 0 — OD too large for this NB.';
+      const lInt = rInt * Math.PI * deg / 180;
+      const lExt = rExt * Math.PI * deg / 180;
+      document.getElementById('e_lInt').textContent = fmt(lInt) + ' mm';
+      document.getElementById('e_lExt').textContent = fmt(lExt) + ' mm';
+    } else {
+      document.getElementById('e_lInt').textContent = '— mm';
+      document.getElementById('e_lExt').textContent = '— mm';
+    }
   }
-}
-['arc-deg','arc-nb','arc-od'].forEach(id=>{
-  const el=document.getElementById(id);
-  el.addEventListener('input', arcCalc);
-  el.addEventListener('change', arcCalc);
-});
-arcCalc();
+  ['e_deg','e_nb','e_od'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', calc);
+    el.addEventListener('change', calc);
+  });
+  calc();
+})();
+</script>
 
 /* ---------------- GASKETS ---------------- */
 const gasketData = {
