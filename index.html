@@ -170,6 +170,14 @@ if ("serviceWorker" in navigator) {
         <div class="value" id="e_ctf">— mm</div>
         <div class="note">CTF = tan(θ/2) × CLR</div>
       </div>
+      
+      <!-- 3) NEW: Elbow Rise (centre-to-centre) -->
+      <div class="resbox">
+        <div class="label">Elbow Rise (centre-to-centre)</div>
+        <div class="value" id="e_rise">— mm</div>
+        <div class="note">Rise = CLR × sin(θ)</div>
+      </div>
+      
 
       <div class="resbox">
         <div class="label">Parallel Centre Shift (one elbow)</div>
@@ -416,6 +424,8 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 });
 
 /* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
+
+/* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
 (function(){
   function fmt(v){ return Number(v).toFixed(3); }
   function calc(){
@@ -437,6 +447,15 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_ctf').textContent = fmt(ctf) + ' mm';
     } else {
       document.getElementById('e_ctf').textContent = '— mm';
+    }
+
+    // ✨ Elbow Rise (centre-to-centre) = CLR × sin θ
+    if(!isNaN(clr) && !isNaN(deg)){
+      const rad = deg * Math.PI / 180;
+      const rise = clr * Math.sin(rad);
+      document.getElementById('e_rise').textContent = fmt(rise) + ' mm';
+    } else {
+      document.getElementById('e_rise').textContent = '— mm';
     }
 
     // Parallel Centre Shift (PCS) = CLR × (1 − cos θ)
