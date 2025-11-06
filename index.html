@@ -171,30 +171,24 @@ if ("serviceWorker" in navigator) {
         <div class="note">CTF = tan(θ/2) × CLR</div>
       </div>
 
-      <!-- NEW: Run / Overall (single elbow centre→face) -->
+      <!-- 🔹 Combined Run Box -->
       <div class="resbox">
         <div class="label">Run (centre → face)</div>
-        <div class="value" id="e_run">— mm</div>
+        <div class="value">
+          <div id="e_run">— mm</div>
+          <div class="sub">CTF + Run: <span id="e_overall">— mm</span></div>
+        </div>
         <div class="note">Run = CTF × cos(θ)</div>
       </div>
 
-      <div class="resbox">
-        <div class="label">Overall Length (CTF + Run)</div>
-        <div class="value" id="e_overall">— mm</div>
-        <div class="note">Overall = CTF + Run</div>
-      </div>
-
-      <!-- NEW: Set / Total (single elbow centre→face) -->
+      <!-- 🔹 Combined Set Box -->
       <div class="resbox">
         <div class="label">Set (centre → face)</div>
-        <div class="value" id="e_set">— mm</div>
+        <div class="value">
+          <div id="e_set">— mm</div>
+          <div class="sub">CTF + Set: <span id="e_total">— mm</span></div>
+        </div>
         <div class="note">Set = CTF × sin(θ)</div>
-      </div>
-
-      <div class="resbox">
-        <div class="label">Total Rise (CTF + Set)</div>
-        <div class="value" id="e_total">— mm</div>
-        <div class="note">Total = CTF + Set</div>
       </div>
 
       <div class="resbox">
