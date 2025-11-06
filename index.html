@@ -170,19 +170,31 @@ if ("serviceWorker" in navigator) {
         <div class="value" id="e_ctf">— mm</div>
         <div class="note">CTF = tan(θ/2) × CLR</div>
       </div>
-      
-      <!-- 3) NEW: Elbow Rise (centre-to-centre) -->
+
+      <!-- NEW: Run / Overall (single elbow centre→face) -->
       <div class="resbox">
-        <div class="label">Elbow Rise (centre-to-centre)</div>
-        <div class="value" id="e_rise">— mm</div>
-        <div class="note">Rise = CLR × sin(θ)</div>
+        <div class="label">Run (centre → face)</div>
+        <div class="value" id="e_run">— mm</div>
+        <div class="note">Run = CTF × cos(θ)</div>
       </div>
-      
 
       <div class="resbox">
-        <div class="label">Parallel Centre Shift (one elbow)</div>
-        <div class="value" id="e_pcs">— mm</div>
-        <div class="note">PCS = CLR × (1 − cos(θ))</div>
+        <div class="label">Overall Length (CTF + Run)</div>
+        <div class="value" id="e_overall">— mm</div>
+        <div class="note">Overall = CTF + Run</div>
+      </div>
+
+      <!-- NEW: Set / Total (single elbow centre→face) -->
+      <div class="resbox">
+        <div class="label">Set (centre → face)</div>
+        <div class="value" id="e_set">— mm</div>
+        <div class="note">Set = CTF × sin(θ)</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Total Rise (CTF + Set)</div>
+        <div class="value" id="e_total">— mm</div>
+        <div class="note">Total = CTF + Set</div>
       </div>
 
       <div class="resbox">
@@ -424,8 +436,6 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 });
 
 /* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
-
-/* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
 (function(){
   function fmt(v){ return Number(v).toFixed(3); }
   function calc(){
@@ -434,37 +444,36 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
     const odMm= parseFloat(document.getElementById('e_od').value);
     const warn= document.getElementById('e_warn'); warn.textContent='';
 
-    // CLR
+    // CLR (1.5D long radius)
     let clr = NaN;
     if(!isNaN(nb)) clr = 1.5 * nb * 25.4;
     document.getElementById('e_clr').textContent = isNaN(clr)? '— mm' : fmt(clr) + ' mm';
 
-    // CTF
-    let ctf = NaN;
+    // CTF = CLR * tan(θ/2)
+    let ctf = NaN, rad = NaN;
     if(!isNaN(clr) && !isNaN(deg)){
-      const rad = deg * Math.PI / 180;
+      rad = deg * Math.PI / 180;
       ctf = Math.tan(rad/2) * clr;
       document.getElementById('e_ctf').textContent = fmt(ctf) + ' mm';
     } else {
       document.getElementById('e_ctf').textContent = '— mm';
     }
 
-    // ✨ Elbow Rise (centre-to-centre) = CLR × sin θ
-    if(!isNaN(clr) && !isNaN(deg)){
-      const rad = deg * Math.PI / 180;
-      const rise = clr * Math.sin(rad);
-      document.getElementById('e_rise').textContent = fmt(rise) + ' mm';
-    } else {
-      document.getElementById('e_rise').textContent = '— mm';
-    }
+    // 🔹 NEW: Run & Set (single elbow, centre→face)
+    if(!isNaN(ctf) && !isNaN(rad)){
+      const run = ctf * Math.cos(rad);     // horizontal leg
+      const set = ctf * Math.sin(rad);     // vertical leg
+      const overall = ctf + run;           // CTF + Run
+      const total   = ctf + set;           // CTF + Set
 
-    // Parallel Centre Shift (PCS) = CLR × (1 − cos θ)
-    if(!isNaN(clr) && !isNaN(deg)){
-      const rad = deg * Math.PI / 180;
-      const pcs = clr * (1 - Math.cos(rad));
-      document.getElementById('e_pcs').textContent = fmt(pcs) + ' mm';
+      document.getElementById('e_run').textContent     = fmt(run) + ' mm';
+      document.getElementById('e_overall').textContent = fmt(overall) + ' mm';
+      document.getElementById('e_set').textContent     = fmt(set) + ' mm';
+      document.getElementById('e_total').textContent   = fmt(total) + ' mm';
     } else {
-      document.getElementById('e_pcs').textContent = '— mm';
+      ['e_run','e_overall','e_set','e_total'].forEach(id=>{
+        document.getElementById(id).textContent = '— mm';
+      });
     }
 
     // Internal/External radii
