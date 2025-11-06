@@ -458,8 +458,8 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
     if (!isNaN(ctf) && !isNaN(rad)) {
       const run   = ctf * Math.cos(rad);   // horizontal leg
       const set   = ctf * Math.sin(rad);   // vertical leg
-      const over  = ctf + run;             // CTF + Run
-      const total = ctf + set;             // CTF + Set
+      const over  = ctf + run;             // CTF +
+      const total = ctf + set + (odMm / 2);  // CTF + Set + pipe radius
 
       document.getElementById('e_run').textContent     = fmt(run) + ' mm';
       document.getElementById('e_overall').textContent = fmt(over) + ' mm';
