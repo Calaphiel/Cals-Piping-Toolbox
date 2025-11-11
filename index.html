@@ -147,14 +147,14 @@ if ("serviceWorker" in navigator) {
 <section id="tool-arc" class="hidden">
   <div class="topbar"><span class="back" data-home>← Back</span><h2>Elbow Takeoff</h2></div>
   <div class="panel">
-    <label>Degree (θ)</label>
-    <input type="number" id="e_deg" placeholder="e.g. 90">
+    <label>Degree (θ) — per elbow</label>
+    <input type="number" id="e_deg" placeholder="e.g. 45">
 
     <label>Nominal Bore (NB) — inches</label>
-    <input type="number" id="e_nb" placeholder="e.g. 2">
+    <input type="number" id="e_nb" placeholder="e.g. 4">
 
     <label>Outside Diameter (OD) — mm</label>
-    <input type="number" id="e_od" placeholder="Enter OD (mm)">
+    <input type="number" id="e_od" placeholder="e.g. 114.3">
 
     <div class="warn" id="e_warn"></div>
 
@@ -166,29 +166,21 @@ if ("serviceWorker" in navigator) {
       </div>
 
       <div class="resbox">
-        <div class="label">Centre To Face</div>
+        <div class="label">Centre To Face (CTF)</div>
         <div class="value" id="e_ctf">— mm</div>
         <div class="note">CTF = tan(θ/2) × CLR</div>
       </div>
 
-      <!-- 🔹 Combined Run Box -->
       <div class="resbox">
-        <div class="label">Run (centre → face)</div>
-        <div class="value">
-          <div id="e_run">— mm</div>
-          <div class="sub">CTF + Run: <span id="e_overall">— mm</span></div>
-        </div>
-        <div class="note">Run = CTF × cos(θ)</div>
+        <div class="label">Parallel Offset (two elbows)</div>
+        <div class="value" id="e_offset">— mm</div>
+        <div class="note">Offset = 2 × CLR × sin(θ/2)</div>
       </div>
 
-      <!-- 🔹 Combined Set Box -->
       <div class="resbox">
-        <div class="label">Set (centre → face)</div>
-        <div class="value">
-          <div id="e_set">— mm</div>
-          <div class="sub">CTF + Set: <span id="e_total">— mm</span></div>
-        </div>
-        <div class="note">Set = CTF × sin(θ)</div>
+        <div class="label">Run between centres (two elbows)</div>
+        <div class="value" id="e_run">— mm</div>
+        <div class="note">Run = 2 × CLR × (1 − cos(θ/2))</div>
       </div>
 
       <div class="resbox">
@@ -431,45 +423,65 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 
 /* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
 (function(){
-  function fmt(v){ return Number(v).toFixed(3); }
+  function fmt(v){ return Number(v).toFixed(2); }
   function calc(){
-    const deg  = parseFloat(document.getElementById('e_deg').value);
-    const nb   = parseFloat(document.getElementById('e_nb').value);
-    const odMm = parseFloat(document.getElementById('e_od').value);
-    const warn = document.getElementById('e_warn'); 
-    warn.textContent = '';
+    const deg = parseFloat(document.getElementById('e_deg').value);
+    const nb  = parseFloat(document.getElementById('e_nb').value);
+    const od  = parseFloat(document.getElementById('e_od').value);
+    const warn= document.getElementById('e_warn'); warn.textContent='';
 
-    // CLR (long radius = 1.5D)
-    let clr = NaN;
-    if (!isNaN(nb)) clr = 1.5 * nb * 25.4;
-    document.getElementById('e_clr').textContent = isNaN(clr) ? '— mm' : fmt(clr) + ' mm';
+    if (!isFinite(nb)) { return; }
 
-    // CTF = CLR * tan(θ/2)
-    let ctf = NaN, rad = NaN;
-    if (!isNaN(clr) && !isNaN(deg)) {
-      rad = deg * Math.PI / 180;
-      ctf = Math.tan(rad / 2) * clr;
-      document.getElementById('e_ctf').textContent = fmt(ctf) + ' mm';
+    const CLR = 1.5 * nb * 25.4;
+    document.getElementById('e_clr').textContent = fmt(CLR) + " mm";
+
+    if (isFinite(deg)) {
+      const rad = deg * Math.PI / 180;
+      const half = rad / 2;
+
+      const CTF    = Math.tan(half) * CLR;                 // per elbow
+      const OFFSET = 2 * CLR * Math.sin(half);             // two elbows
+      const RUN    = 2 * CLR * (1 - Math.cos(half));       // two elbows
+
+      document.getElementById('e_ctf').textContent    = fmt(CTF) + " mm";
+      document.getElementById('e_offset').textContent = fmt(OFFSET) + " mm";
+      document.getElementById('e_run').textContent    = fmt(RUN) + " mm";
     } else {
-      document.getElementById('e_ctf').textContent = '— mm';
+      document.getElementById('e_ctf').textContent    = "— mm";
+      document.getElementById('e_offset').textContent = "— mm";
+      document.getElementById('e_run').textContent    = "— mm";
     }
 
-    // 🔹 Run & Set (single elbow, centre→face) + totals
-    if (!isNaN(ctf) && !isNaN(rad)) {
-      const run   = ctf * Math.cos(rad);   // horizontal leg
-      const set   = ctf * Math.sin(rad);   // vertical leg
-      const over  = ctf + run;             // CTF +
-      const total = ctf + set + (odMm / 2);  // CTF + Set + pipe radius
+    if (isFinite(od)) {
+      const rInt = CLR - od/2;
+      const rExt = CLR + od/2;
+      document.getElementById('e_rInt').textContent = fmt(rInt) + " mm";
+      document.getElementById('e_rExt').textContent = fmt(rExt) + " mm";
+      if (rInt <= 0) warn.textContent = "⚠ Internal radius ≤ 0 — OD too large for this NB.";
 
-      document.getElementById('e_run').textContent     = fmt(run) + ' mm';
-      document.getElementById('e_overall').textContent = fmt(over) + ' mm';
-      document.getElementById('e_set').textContent     = fmt(set) + ' mm';
-      document.getElementById('e_total').textContent   = fmt(total) + ' mm';
+      if (isFinite(deg)) {
+        const lInt = rInt * Math.PI * deg / 180;
+        const lExt = rExt * Math.PI * deg / 180;
+        document.getElementById('e_lInt').textContent = fmt(lInt) + " mm";
+        document.getElementById('e_lExt').textContent = fmt(lExt) + " mm";
+      } else {
+        document.getElementById('e_lInt').textContent = "— mm";
+        document.getElementById('e_lExt').textContent = "— mm";
+      }
     } else {
-      ['e_run','e_overall','e_set','e_total'].forEach(id=>{
-        document.getElementById(id).textContent = '— mm';
-      });
+      document.getElementById('e_rInt').textContent = "— mm";
+      document.getElementById('e_rExt').textContent = "— mm";
+      document.getElementById('e_lInt').textContent = "— mm";
+      document.getElementById('e_lExt').textContent = "— mm";
     }
+  }
+  ['e_deg','e_nb','e_od'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', calc);
+    el.addEventListener('change', calc);
+  });
+  calc();
+})();
 
     // Internal / External radii (unchanged)
     let rInt = NaN, rExt = NaN;
