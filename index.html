@@ -52,68 +52,57 @@
 
 <script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("Service Worker registered"));
+  navigator.serviceWorker.register("sw.js").then(()=>console.log("Service Worker registered"));
 }
 </script>
 
 <header><h1>Pipefitter’s Toolbox</h1></header>
 
-<!-- HOMEPAGE (visible by default) -->
+<main>
+<!-- HOMEPAGE -->
 <section id="home">
   <div class="grid">
-
     <div class="card" data-open="tool-torque">
       <div><span class="icon">🔧</span><span class="title">Metric Bolt Torque</span></div>
       <div class="desc">M6–M36 | Dry, Lubed, Stainless | N·m ↔ ft·lbf</div>
     </div>
-
     <div class="card" data-open="tool-arc">
       <div><span class="icon">📐</span><span class="title">Pipe Radius & Arc</span></div>
-      <div class="desc">CLR, centre-to-face, inner/outer radii & arc lengths</div>
+      <div class="desc">CLR, centre-to-face, one-elbow run & set</div>
     </div>
-
     <div class="card" data-open="tool-gaskets">
       <div><span class="icon">⭕</span><span class="title">PN Gasket Dimensions</span></div>
       <div class="desc">EN 1092-1 PN10 / PN16 / PN40 | DN15–DN600</div>
     </div>
-
     <div class="card" data-open="tool-lateral">
       <div><span class="icon">🔀</span><span class="title">Lateral Branch Cuts</span></div>
-      <div class="desc">Header/branch ODs, angle, 16ths table output</div>
+      <div class="desc">Header/branch ODs, angle, 16ths table</div>
     </div>
-
     <div class="card" data-open="tool-reference">
       <div><span class="icon">📘</span><span class="title">Reference Formulas</span></div>
       <div class="desc">Offsets, elbows, trig basics, pipe properties</div>
     </div>
-
     <div class="card" data-open="tool-rolling">
       <div><span class="icon">🔄</span><span class="title">Rolling Offset</span></div>
       <div class="desc">Travel, bend/cut angle, roll/twist, pup length</div>
     </div>
-
     <div class="card" data-open="tool-expansion">
       <div><span class="icon">🌡️</span><span class="title">Thermal Expansion</span></div>
       <div class="desc">ΔL from length & dT, by material</div>
     </div>
-
     <div class="card" onclick="location.href='yaw.html'">
       <div><span class="icon">🧭</span><span class="title">Yaw Tool</span></div>
       <div class="desc">Relative yaw with zeroing (calibrated).</div>
     </div>
-
     <div class="card" onclick="location.href='right-triangle.html'">
       <div><span class="icon">◣</span><span class="title">Right Triangle Solver</span></div>
       <div class="desc">Solve right triangles with 2 known values.</div>
     </div>
-
     <div class="card" onclick="location.href='elbow-penetration.html'">
       <span class="icon">🧱</span>
       <span class="title">Elbow Pass-Through</span>
       <div class="desc">Check if an LR elbow fits through a penetration.</div>
     </div>
-
   </div>
 </section>
 
@@ -143,11 +132,11 @@ if ("serviceWorker" in navigator) {
   </div>
 </section>
 
-<!-- PIPE RADIUS & ARC (Elbow Takeoff) -->
+<!-- PIPE RADIUS & ARC (Elbow Takeoff: ONE ELBOW to FACE) -->
 <section id="tool-arc" class="hidden">
   <div class="topbar"><span class="back" data-home>← Back</span><h2>Elbow Takeoff</h2></div>
   <div class="panel">
-    <label>Degree (θ) — per elbow</label>
+    <label>Degree (θ) — one elbow</label>
     <input type="number" id="e_deg" placeholder="e.g. 45">
 
     <label>Nominal Bore (NB) — inches</label>
@@ -168,19 +157,19 @@ if ("serviceWorker" in navigator) {
       <div class="resbox">
         <div class="label">Centre To Face (CTF)</div>
         <div class="value" id="e_ctf">— mm</div>
-        <div class="note">CTF = tan(θ/2) × CLR</div>
+        <div class="note">CTF = CLR × tan(θ/2)</div>
       </div>
 
       <div class="resbox">
-        <div class="label">Parallel Offset (two elbows)</div>
-        <div class="value" id="e_offset">— mm</div>
-        <div class="note">Offset = 2 × CLR × sin(θ/2)</div>
-      </div>
-
-      <div class="resbox">
-        <div class="label">Run between centres (two elbows)</div>
+        <div class="label">Run (one elbow → face)</div>
         <div class="value" id="e_run">— mm</div>
-        <div class="note">Run = 2 × CLR × (1 − cos(θ/2))</div>
+        <div class="note">Run = R·sin(θ) + CTF·cos(θ)</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Set (one elbow → face)</div>
+        <div class="value" id="e_set">— mm</div>
+        <div class="note">Set = R·(1 − cos(θ)) + CTF·sin(θ)</div>
       </div>
 
       <div class="resbox">
@@ -357,15 +346,14 @@ if ("serviceWorker" in navigator) {
     <p class="note">Formula: ΔL = α × L × ΔT &nbsp; (α in mm/m·°C; L in m ⇒ ΔL in mm)</p>
   </div>
 </section>
-
 </main>
 
 <script>
 /* ---------------- ROUTER ---------------- */
 const sections=["home","tool-torque","tool-arc","tool-gaskets","tool-lateral","tool-reference","tool-rolling","tool-expansion"];
 function show(id){
-  sections.forEach(s=>document.getElementById(s).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
+  sections.forEach(s=>document.getElementById(s)?.classList.add('hidden'));
+  document.getElementById(id)?.classList.remove('hidden');
   window.scrollTo({top:0,behavior:'instant'});
 }
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>show('home')));
@@ -421,7 +409,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
   res.textContent = `${v}: Carbon Steel (Dry) = ${torqueToUnit(t.dry)} | Carbon Steel (Lubed) = ${torqueToUnit(t.lube)} | Stainless Steel = ${torqueToUnit(t.ss)}`;
 });
 
-/* ---------------- ELBOW TAKEOFF (Pipe Radius & Arc) ---------------- */
+/* ---------------- ELBOW TAKEOFF (ONE ELBOW to FACE) ---------------- */
 (function(){
   function fmt(v){ return Number(v).toFixed(2); }
   function calc(){
@@ -430,31 +418,35 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
     const od  = parseFloat(document.getElementById('e_od').value);
     const warn= document.getElementById('e_warn'); warn.textContent='';
 
-    if (!isFinite(nb)) { return; }
-
-    const CLR = 1.5 * nb * 25.4;
-    document.getElementById('e_clr').textContent = fmt(CLR) + " mm";
-
-    if (isFinite(deg)) {
-      const rad = deg * Math.PI / 180;
-      const half = rad / 2;
-
-      const CTF    = Math.tan(half) * CLR;                 // per elbow
-      const OFFSET = 2 * CLR * Math.sin(half);             // two elbows
-      const RUN    = 2 * CLR * (1 - Math.cos(half));       // two elbows
-
-      document.getElementById('e_ctf').textContent    = fmt(CTF) + " mm";
-      document.getElementById('e_offset').textContent = fmt(OFFSET) + " mm";
-      document.getElementById('e_run').textContent    = fmt(RUN) + " mm";
-    } else {
-      document.getElementById('e_ctf').textContent    = "— mm";
-      document.getElementById('e_offset').textContent = "— mm";
-      document.getElementById('e_run').textContent    = "— mm";
+    if (!isFinite(nb)) { 
+      // clear outputs if NB is missing
+      ['e_clr','e_ctf','e_run','e_set','e_rInt','e_rExt','e_lInt','e_lExt'].forEach(id=>document.getElementById(id).textContent='— mm');
+      return; 
     }
 
+    const R = 1.5 * nb * 25.4;  // CLR for LR
+    document.getElementById('e_clr').textContent = fmt(R) + " mm";
+
+    if (isFinite(deg)) {
+      const th = deg * Math.PI / 180;
+      const CTF = R * Math.tan(th/2); // per elbow
+      document.getElementById('e_ctf').textContent = fmt(CTF) + " mm";
+
+      // ONE elbow components to the FACE
+      const run = R * Math.sin(th) + CTF * Math.cos(th);
+      const set = R * (1 - Math.cos(th)) + CTF * Math.sin(th);
+      document.getElementById('e_run').textContent = fmt(run) + " mm";
+      document.getElementById('e_set').textContent = fmt(set) + " mm";
+    } else {
+      document.getElementById('e_ctf').textContent = "— mm";
+      document.getElementById('e_run').textContent = "— mm";
+      document.getElementById('e_set').textContent = "— mm";
+    }
+
+    // Radii + arc lengths
     if (isFinite(od)) {
-      const rInt = CLR - od/2;
-      const rExt = CLR + od/2;
+      const rInt = R - od/2;
+      const rExt = R + od/2;
       document.getElementById('e_rInt').textContent = fmt(rInt) + " mm";
       document.getElementById('e_rExt').textContent = fmt(rExt) + " mm";
       if (rInt <= 0) warn.textContent = "⚠ Internal radius ≤ 0 — OD too large for this NB.";
@@ -475,39 +467,6 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_lExt').textContent = "— mm";
     }
   }
-  ['e_deg','e_nb','e_od'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.addEventListener('input', calc);
-    el.addEventListener('change', calc);
-  });
-  calc();
-})();
-
-    // Internal / External radii (unchanged)
-    let rInt = NaN, rExt = NaN;
-    if (!isNaN(clr) && !isNaN(odMm)) {
-      rInt = clr - odMm/2;
-      rExt = clr + odMm/2;
-      document.getElementById('e_rInt').textContent = fmt(rInt) + ' mm';
-      document.getElementById('e_rExt').textContent = fmt(rExt) + ' mm';
-    } else {
-      document.getElementById('e_rInt').textContent = '— mm';
-      document.getElementById('e_rExt').textContent = '— mm';
-    }
-
-    // Arc lengths (unchanged)
-    if (!isNaN(rInt) && !isNaN(rExt) && !isNaN(deg)) {
-      if (rInt <= 0) warn.textContent = '⚠ Internal radius ≤ 0 — OD too large for this NB.';
-      const lInt = rInt * Math.PI * deg / 180;
-      const lExt = rExt * Math.PI * deg / 180;
-      document.getElementById('e_lInt').textContent = fmt(lInt) + ' mm';
-      document.getElementById('e_lExt').textContent = fmt(lExt) + ' mm';
-    } else {
-      document.getElementById('e_lInt').textContent = '— mm';
-      document.getElementById('e_lExt').textContent = '— mm';
-    }
-  }
-
   ['e_deg','e_nb','e_od'].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
@@ -599,11 +558,9 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
   const angleRad = angleDeg * Math.PI / 180;
   const phiStep = 360 / divisions;
 
-  // circumference + mm per degree
   const circumference = Math.PI * B_OD;
   const mmPerDeg = circumference / 360;
 
-  // summary panel
   let html = `
     <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;">
       <div><span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br><span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span></div>
@@ -613,9 +570,7 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
 
   html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
 
-  // calculate and store points
   const rows = [];
-
   for (let i = 0; i <= divisions; i++) {
     const phi = (i === divisions ? 360 : i * phiStep);
     const phiRad = phi * Math.PI / 180;
@@ -628,22 +583,11 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
       const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
       cut = part1 + part2;
     }
-
-    rows.push({
-      index: i,
-      phi,
-      arcMM,
-      cut
-    });
+    rows.push({phi, arcMM, cut});
   }
 
-  // print table
   rows.forEach((r, idx) => {
-    const divLabel = idx === 0 ? 0 : idx; // label first as 0
-    const phiLabel = r.phi.toFixed(2);
-    const arcLabel = r.arcMM.toFixed(2);
-    const cutLabel = isFinite(r.cut) ? r.cut.toFixed(2) : 'NaN';
-    html += `<tr><td>${divLabel}</td><td>${phiLabel}</td><td>${arcLabel}</td><td>${cutLabel}</td></tr>`;
+    html += `<tr><td>${idx===0?0:idx}</td><td>${r.phi.toFixed(2)}</td><td>${r.arcMM.toFixed(2)}</td><td>${isFinite(r.cut)?r.cut.toFixed(2):'NaN'}</td></tr>`;
   });
 
   html += '</table>';
