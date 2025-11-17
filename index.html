@@ -412,38 +412,44 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
 /* ---------------- ELBOW TAKEOFF (ONE ELBOW to FACE) ---------------- */
 (function(){
   function fmt(v){ return Number(v).toFixed(2); }
+
   function calc(){
     const deg = parseFloat(document.getElementById('e_deg').value);
     const nb  = parseFloat(document.getElementById('e_nb').value);
     const od  = parseFloat(document.getElementById('e_od').value);
-    const warn= document.getElementById('e_warn'); warn.textContent='';
+    const warn= document.getElementById('e_warn'); 
+    warn.textContent='';
 
+    // If NB is missing, clear outputs and bail
     if (!isFinite(nb)) { 
-      // clear outputs if NB is missing
-      ['e_clr','e_ctf','e_run','e_set','e_rInt','e_rExt','e_lInt','e_lExt'].forEach(id=>document.getElementById(id).textContent='— mm');
+      ['e_clr','e_ctf','e_run','e_set','e_rInt','e_rExt','e_lInt','e_lExt']
+        .forEach(id => document.getElementById(id).textContent = '— mm');
       return; 
     }
 
-    const R = 1.5 * nb * 25.4;  // CLR for LR
+    // CLR for LR elbow
+    const R = 1.5 * nb * 25.4;
     document.getElementById('e_clr').textContent = fmt(R) + " mm";
 
     if (isFinite(deg)) {
-      const th = deg * Math.PI / 180;
-      const CTF = R * Math.tan(th/2); // per elbow
+      const th  = deg * Math.PI / 180;
+      const CTF = R * Math.tan(th/2);         // centre-to-face
       document.getElementById('e_ctf').textContent = fmt(CTF) + " mm";
 
-      // ONE elbow components to the FACE
-      const run = R * Math.sin(th) + CTF * Math.cos(th);
-      const set = R * (1 - Math.cos(th)) + CTF * Math.sin(th);
-      document.getElementById('e_run').textContent = fmt(run) + " mm";
-      document.getElementById('e_set').textContent = fmt(set) + " mm";
+      // ✅ YOUR DEFINITION:
+      // Single-elbow SET and RUN based ONLY on CTF
+      const set1 = CTF * Math.cos(th);        // SET = CTF · cos(θ)
+      const run1 = CTF + CTF * Math.sin(th);  // RUN = CTF + CTF · sin(θ)
+
+      document.getElementById('e_set').textContent = fmt(set1) + " mm";
+      document.getElementById('e_run').textContent = fmt(run1) + " mm";
     } else {
       document.getElementById('e_ctf').textContent = "— mm";
       document.getElementById('e_run').textContent = "— mm";
       document.getElementById('e_set').textContent = "— mm";
     }
 
-    // Radii + arc lengths
+    // Radii + arc lengths (unchanged)
     if (isFinite(od)) {
       const rInt = R - od/2;
       const rExt = R + od/2;
@@ -467,6 +473,7 @@ document.getElementById('torque-boltSelect').addEventListener('change',e=>{
       document.getElementById('e_lExt').textContent = "— mm";
     }
   }
+
   ['e_deg','e_nb','e_od'].forEach(id=>{
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
