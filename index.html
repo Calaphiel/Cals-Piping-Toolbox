@@ -223,7 +223,6 @@ if ("serviceWorker" in navigator) {
 </section>
 
 <!-- LATERAL BRANCH CUTS -->
-<!-- LATERAL BRANCH CUTS -->
 <section id="tool-lateral" class="hidden">
   <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
   <div class="panel">
@@ -550,30 +549,85 @@ document.getElementById('gsk-pnSelect').addEventListener('change',e=>gskRender(e
 gskRender('PN10');
 
 /* ---------------- LATERAL ---------------- */
-<!-- LATERAL BRANCH CUTS -->
-<section id="tool-lateral" class="hidden">
-  <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
-  <div class="panel">
-    <label>Header OD (mm)</label>
-    <input type="number" id="lat-headerOD" value="304.8">
+document.getElementById('lat-go').addEventListener('click', ()=>{
+  const H_OD = parseFloat(document.getElementById('lat-headerOD').value);
+  const B_OD = parseFloat(document.getElementById('lat-branchOD').value);
+  const B_ID = parseFloat(document.getElementById('lat-branchID').value);
+  const angleDeg = parseFloat(document.getElementById('lat-angle').value);
+  const divisions = parseInt(document.getElementById('lat-divisions').value);
 
-    <label>Branch OD (mm)</label>
-    <input type="number" id="lat-branchOD" value="254">
+  if ([H_OD, B_OD, angleDeg, divisions].some(v => !isFinite(v))) {
+    alert("Please enter valid numbers for all required fields.");
+    return;
+  }
 
-    <label>Branch ID (mm, optional)</label>
-    <input type="number" id="lat-branchID" placeholder="Optional">
+  const H = H_OD / 2;
+  const B = isFinite(B_ID) ? B_ID / 2 : B_OD / 2;
+  if (B > H) {
+    alert("Branch radius is larger than header radius! Check your inputs.");
+    return;
+  }
 
-    <label>Lateral Angle (degrees)</label>
-    <input type="number" id="lat-angle" value="45">
-    <div class="note">Parallel angle (along header) = 90° − lateral angle.</div>
+  const angleRad = angleDeg * Math.PI / 180;
+  const phiStep = 360 / divisions;
 
-    <label>Number of Divisions</label>
-    <input type="number" id="lat-divisions" value="16">
+  const circumference = Math.PI * B_OD;
+  const mmPerDeg = circumference / 360;
 
-    <button id="lat-go">Calculate Cut Points</button>
-  </div>
-  <div class="panel" id="lat-results"></div>
-</section>
+  // NEW: parallel angle along the header (complement of lateral)
+  const parallelDeg = 90 - angleDeg;
+
+  let html = `
+    <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;flex-wrap:wrap;gap:8px;">
+      <div>
+        <span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br>
+        <span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span>
+      </div>
+      <div>
+        <span style="color:#94a3b8;font-size:13px;">mm per Degree:</span><br>
+        <span style="color:#7dd3fc;font-size:16px;">${mmPerDeg.toFixed(3)} mm/°</span>
+      </div>
+      <div>
+        <span style="color:#94a3b8;font-size:13px;">Lateral Angle (input):</span><br>
+        <span style="color:#7dd3fc;font-size:16px;">${angleDeg.toFixed(2)}°</span>
+      </div>
+      <div>
+        <span style="color:#94a3b8;font-size:13px;">Parallel Angle (along header):</span><br>
+        <span style="color:#7dd3fc;font-size:16px;">${parallelDeg.toFixed(2)}°</span>
+      </div>
+    </div>
+  `;
+
+  html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
+
+  const rows = [];
+  for (let i = 0; i <= divisions; i++) {
+    const phi = (i === divisions ? 360 : i * phiStep);
+    const phiRad = phi * Math.PI / 180;
+    const sqrtArg = H * H - Math.pow(B * Math.sin(phiRad), 2);
+    const arcMM = circumference * (phi / 360);
+    let cut = NaN;
+
+    if (sqrtArg >= 0 && Math.sin(angleRad) !== 0 && Math.tan(angleRad) !== 0) {
+      const part1 = (H - Math.sqrt(sqrtArg)) / Math.sin(angleRad);
+      const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
+      cut = part1 + part2;
+    }
+    rows.push({phi, arcMM, cut});
+  }
+
+  rows.forEach((r, idx) => {
+    html += `<tr>
+      <td>${idx===0?0:idx}</td>
+      <td>${r.phi.toFixed(2)}</td>
+      <td>${r.arcMM.toFixed(2)}</td>
+      <td>${isFinite(r.cut)?r.cut.toFixed(2):'NaN'}</td>
+    </tr>`;
+  });
+
+  html += '</table>';
+  document.getElementById('lat-results').innerHTML = html;
+});
 
 /* ---------------- ROLLING OFFSET ---------------- */
 function fmt2(n){return Number(n).toFixed(2);}
