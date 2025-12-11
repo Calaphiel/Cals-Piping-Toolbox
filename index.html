@@ -372,20 +372,21 @@ if ("serviceWorker" in navigator) {
   </div>
 
   <div class="panel">
-    <label>Pipe Internal Diameter (ID) — mm</label>
-    <input type="number" id="purge-id" placeholder="e.g. 100">
+    <label>Pipe Internal Diameter (ID) — inches</label>
+    <input type="number" id="purge-id-in" placeholder="e.g. 4">
 
     <label>Purge Length (between dams or ends) — mm</label>
     <input type="number" id="purge-length" placeholder="e.g. 1000">
 
-    <label>Purge Quality</label>
+    <label>Purge Quality (default volume changes)</label>
     <select id="purge-quality">
       <option value="standard" selected>Standard (≈4 volume changes)</option>
       <option value="critical">Critical (≈6 volume changes)</option>
     </select>
 
     <div class="note">
-      • Volume is based on ID and length between dams or flanges.<br>
+      • ID is internal diameter in inches, converted inside to mm.<br>
+      • Length is the distance between dams or flanges you are purging.<br>
       • Flow is what you set on the ball flowmeter (L/min).<br>
       • Time is the initial flush before striking arc.
     </div>
@@ -403,26 +404,47 @@ if ("serviceWorker" in navigator) {
 
       <div class="resbox">
         <div class="label">Recommended Flow</div>
-        <div class="value" id="purge-flow">—</div>
-        <div class="note">Set your ball to this value (L/min).</div>
-      </div>
-
-      <div className="resbox">
-        <div class="label">Initial Purge Time</div>
-        <div class="value" id="purge-time">—</div>
-        <div class="note">Time to flush before welding (min).</div>
+        <div class="value" id="purge-flow-rec">—</div>
+        <div class="note">Rule-of-thumb based on ID (L/min).</div>
       </div>
 
       <div class="resbox">
-        <div class="label">Volumes Used</div>
+        <div class="label">Actual Flow (slider)</div>
+        <div class="value" id="purge-flow-actual">—</div>
+        <div class="note">Set this on your flowmeter.</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Initial Purge Time</div>
+        <div class="value" id="purge-time">—</div>
+        <div class="note">Flush time before welding (min).</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Volume Changes</div>
         <div class="value" id="purge-vols">—</div>
-        <div class="note">How many volume changes were assumed.</div>
+        <div class="note">How many times we replace the pipe volume.</div>
       </div>
     </div>
 
+    <hr style="border-color:#2f3b5c;margin:14px 0;">
+
+    <div class="note">
+      <b>Adjust sliders to suit your setup:</b>
+    </div>
+
+    <label>Volume Changes (2–8)</label>
+    <input type="range" id="purge-volslider" min="2" max="8" step="1">
+    <div class="note">Current: <span id="purge-volslider-val">—</span> volumes</div>
+
+    <label>Actual Flow Setting (L/min)</label>
+    <input type="range" id="purge-flowslider" min="1" max="30" step="0.5">
+    <div class="note">Current: <span id="purge-flowslider-val">—</span> L/min</div>
+
     <p class="note">
       Flow rule-of-thumb: Flow ≈ 0.06 × ID(mm), clamped between 3–18 L/min.<br>
-      Volume changes: 4 for standard work, 6 for critical purge quality.
+      Standard: ~4 volume changes. Critical: ~6 volume changes.<br>
+      If you increase flow (e.g. from 5 L/min to 25 L/min), the required purge time will drop automatically.
     </p>
   </div>
 </section>
@@ -765,42 +787,88 @@ document.getElementById('exp-go').addEventListener('click', ()=>{
 (function(){
   function fmt(n, d=2){ return Number(n).toFixed(d); }
 
-  document.getElementById('purge-go').addEventListener('click', ()=>{
-    const idMM     = parseFloat(document.getElementById('purge-id').value);
-    const lenMM    = parseFloat(document.getElementById('purge-length').value);
-    const quality  = document.getElementById('purge-quality').value;
+  let vol_L = null;   // stored pipe volume for slider recalcs
 
-    if (!isFinite(idMM) || !isFinite(lenMM) || idMM <= 0 || lenMM <= 0) {
-      alert("Please enter valid positive values for ID and length.");
+  const volSpan   = document.getElementById('purge-vol');
+  const flowRecEl = document.getElementById('purge-flow-rec');
+  const flowActEl = document.getElementById('purge-flow-actual');
+  const timeEl    = document.getElementById('purge-time');
+  const volsEl    = document.getElementById('purge-vols');
+
+  const volSlider     = document.getElementById('purge-volslider');
+  const volSliderVal  = document.getElementById('purge-volslider-val');
+  const flowSlider    = document.getElementById('purge-flowslider');
+  const flowSliderVal = document.getElementById('purge-flowslider-val');
+
+  function recomputeFromSliders(){
+    if (vol_L === null || vol_L <= 0) return;
+
+    const N_vols   = parseFloat(volSlider.value);
+    const flowLmin = parseFloat(flowSlider.value);
+
+    if (!isFinite(N_vols) || !isFinite(flowLmin) || flowLmin <= 0) return;
+
+    const time_min = (N_vols * vol_L) / flowLmin;
+
+    volsEl.textContent      = N_vols.toString() + " volumes";
+    flowActEl.textContent   = fmt(flowLmin) + " L/min";
+    timeEl.textContent      = fmt(time_min, 1) + " min";
+
+    volSliderVal.textContent  = N_vols.toString();
+    flowSliderVal.textContent = fmt(flowLmin);
+  }
+
+  document.getElementById('purge-go').addEventListener('click', ()=>{
+    const idIn    = parseFloat(document.getElementById('purge-id-in').value);
+    const lenMM   = parseFloat(document.getElementById('purge-length').value);
+    const quality = document.getElementById('purge-quality').value;
+
+    if (!isFinite(idIn) || !isFinite(lenMM) || idIn <= 0 || lenMM <= 0) {
+      alert("Please enter valid positive values for ID (inches) and length (mm).");
       return;
     }
 
+    // Convert ID to mm
+    const idMM = idIn * 25.4;
+
     // 1) Internal volume (L)
-    // Volume_mm3 = π * (ID^2 / 4) * Length
-    // 1 L = 1e6 mm³ → Volume_L = Volume_mm3 / 1e6
-    const area_mm2   = Math.PI * idMM * idMM / 4;
-    const vol_mm3    = area_mm2 * lenMM;
-    const vol_L      = vol_mm3 / 1e6;
+    const area_mm2 = Math.PI * idMM * idMM / 4;
+    const vol_mm3  = area_mm2 * lenMM;
+    vol_L          = vol_mm3 / 1e6;
 
-    // 2) Recommended flow (L/min)
-    // Flow_raw ≈ 0.06 × ID(mm), clamped 3–18 L/min
-    let flow_raw = 0.06 * idMM;
-    let flow_Lmin = Math.max(3, Math.min(flow_raw, 18));
+    volSpan.textContent = fmt(vol_L) + " L";
 
-    // 3) Number of volume changes
-    const N_vols = (quality === "critical") ? 6 : 4;
+    // 2) Recommended flow rule-of-thumb
+    let flow_raw  = 0.06 * idMM;           // ~0.06 × ID(mm)
+    let flow_rec  = Math.max(3, Math.min(flow_raw, 18));  // clamp 3–18 L/min
+    flowRecEl.textContent = fmt(flow_rec) + " L/min";
 
-    // 4) Time (minutes)
-    const time_min = (N_vols * vol_L) / flow_Lmin;
+    // 3) Default volume changes from quality
+    const N_default = (quality === "critical") ? 6 : 4;
 
-    // Update UI
-    document.getElementById('purge-vol').textContent   = fmt(vol_L) + " L";
-    document.getElementById('purge-flow').textContent  = fmt(flow_Lmin) + " L/min";
-    document.getElementById('purge-time').textContent  = fmt(time_min,1) + " min";
-    document.getElementById('purge-vols').textContent  = N_vols.toString() + " volumes";
+    // 4) Initialise sliders
+    volSlider.value     = N_default;
+    volSliderVal.textContent = N_default.toString();
 
+    // Flow slider: centre it around recommended
+    const flowSliderMin = 1;
+    const flowSliderMax = 30;
+    flowSlider.min  = flowSliderMin;
+    flowSlider.max  = flowSliderMax;
+    flowSlider.step = 0.5;
+
+    flowSlider.value     = fmt(flow_rec);
+    flowSliderVal.textContent = fmt(flow_rec);
+
+    // 5) Compute time from these defaults
+    recomputeFromSliders();
+
+    // Show results panel
     document.getElementById('purge-results').classList.remove('hidden');
   });
+
+  volSlider.addEventListener('input', recomputeFromSliders);
+  flowSlider.addEventListener('input', recomputeFromSliders);
 })();
 
 </script>
