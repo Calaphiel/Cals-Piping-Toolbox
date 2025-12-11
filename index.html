@@ -98,6 +98,10 @@ if ("serviceWorker" in navigator) {
       <div><span class="icon">◣</span><span class="title">Right Triangle Solver</span></div>
       <div class="desc">Solve right triangles with 2 known values.</div>
     </div>
+    <div class="card" data-open="tool-purge">
+      <div><span class="icon">💨</span><span class="title">Purge Calculator</span></div>
+      <div class="desc">Recommended L/min and initial purge time.</div>
+    </div>
     <div class="card" onclick="location.href='elbow-penetration.html'">
       <span class="icon">🧱</span>
       <span class="title">Elbow Pass-Through</span>
@@ -359,11 +363,85 @@ if ("serviceWorker" in navigator) {
     <p class="note">Formula: ΔL = α × L × ΔT &nbsp; (α in mm/m·°C; L in m ⇒ ΔL in mm)</p>
   </div>
 </section>
-</main>
 
+<!-- PURGE CALCULATOR -->
+<section id="tool-purge" class="hidden">
+  <div class="topbar">
+    <span class="back" data-home>← Back</span>
+    <h2>Purge Calculator</h2>
+  </div>
+
+  <div class="panel">
+    <label>Pipe Internal Diameter (ID) — mm</label>
+    <input type="number" id="purge-id" placeholder="e.g. 100">
+
+    <label>Purge Length (between dams or ends) — mm</label>
+    <input type="number" id="purge-length" placeholder="e.g. 1000">
+
+    <label>Purge Quality</label>
+    <select id="purge-quality">
+      <option value="standard" selected>Standard (≈4 volume changes)</option>
+      <option value="critical">Critical (≈6 volume changes)</option>
+    </select>
+
+    <div class="note">
+      • Volume is based on ID and length between dams or flanges.<br>
+      • Flow is what you set on the ball flowmeter (L/min).<br>
+      • Time is the initial flush before striking arc.
+    </div>
+
+    <button id="purge-go">Calculate Purge</button>
+  </div>
+
+  <div id="purge-results" class="panel hidden">
+    <div class="results">
+      <div class="resbox">
+        <div class="label">Pipe Volume</div>
+        <div class="value" id="purge-vol">—</div>
+        <div class="note">Internal volume of purge zone (L).</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Recommended Flow</div>
+        <div class="value" id="purge-flow">—</div>
+        <div class="note">Set your ball to this value (L/min).</div>
+      </div>
+
+      <div className="resbox">
+        <div class="label">Initial Purge Time</div>
+        <div class="value" id="purge-time">—</div>
+        <div class="note">Time to flush before welding (min).</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Volumes Used</div>
+        <div class="value" id="purge-vols">—</div>
+        <div class="note">How many volume changes were assumed.</div>
+      </div>
+    </div>
+
+    <p class="note">
+      Flow rule-of-thumb: Flow ≈ 0.06 × ID(mm), clamped between 3–18 L/min.<br>
+      Volume changes: 4 for standard work, 6 for critical purge quality.
+    </p>
+  </div>
+</section>
+
+</main>
 <script>
+
+const sections=[
+  "home",
+  "tool-torque",
+  "tool-arc",
+  "tool-gaskets",
+  "tool-lateral",
+  "tool-reference",
+  "tool-rolling",
+  "tool-expansion",
+  "tool-purge"
+];
 /* ---------------- ROUTER ---------------- */
-const sections=["home","tool-torque","tool-arc","tool-gaskets","tool-lateral","tool-reference","tool-rolling","tool-expansion"];
 function show(id){
   sections.forEach(s=>document.getElementById(s)?.classList.add('hidden'));
   document.getElementById(id)?.classList.remove('hidden');
@@ -682,6 +760,49 @@ document.getElementById('exp-go').addEventListener('click', ()=>{
   document.getElementById('expansion-val').textContent=Number(dL).toFixed(2)+" mm";
   document.getElementById('exp-results').classList.remove('hidden');
 });
+
+/* ---------------- PURGE CALCULATOR ---------------- */
+(function(){
+  function fmt(n, d=2){ return Number(n).toFixed(d); }
+
+  document.getElementById('purge-go').addEventListener('click', ()=>{
+    const idMM     = parseFloat(document.getElementById('purge-id').value);
+    const lenMM    = parseFloat(document.getElementById('purge-length').value);
+    const quality  = document.getElementById('purge-quality').value;
+
+    if (!isFinite(idMM) || !isFinite(lenMM) || idMM <= 0 || lenMM <= 0) {
+      alert("Please enter valid positive values for ID and length.");
+      return;
+    }
+
+    // 1) Internal volume (L)
+    // Volume_mm3 = π * (ID^2 / 4) * Length
+    // 1 L = 1e6 mm³ → Volume_L = Volume_mm3 / 1e6
+    const area_mm2   = Math.PI * idMM * idMM / 4;
+    const vol_mm3    = area_mm2 * lenMM;
+    const vol_L      = vol_mm3 / 1e6;
+
+    // 2) Recommended flow (L/min)
+    // Flow_raw ≈ 0.06 × ID(mm), clamped 3–18 L/min
+    let flow_raw = 0.06 * idMM;
+    let flow_Lmin = Math.max(3, Math.min(flow_raw, 18));
+
+    // 3) Number of volume changes
+    const N_vols = (quality === "critical") ? 6 : 4;
+
+    // 4) Time (minutes)
+    const time_min = (N_vols * vol_L) / flow_Lmin;
+
+    // Update UI
+    document.getElementById('purge-vol').textContent   = fmt(vol_L) + " L";
+    document.getElementById('purge-flow').textContent  = fmt(flow_Lmin) + " L/min";
+    document.getElementById('purge-time').textContent  = fmt(time_min,1) + " min";
+    document.getElementById('purge-vols').textContent  = N_vols.toString() + " volumes";
+
+    document.getElementById('purge-results').classList.remove('hidden');
+  });
+})();
+
 </script>
 </body>
 </html>
