@@ -226,12 +226,9 @@ if ("serviceWorker" in navigator) {
   </div>
 </section>
 
-<!-- LATERAL / ANGLED BRANCH CUTS -->
+<!-- LATERAL BRANCH CUTS -->
 <section id="tool-lateral" class="hidden">
-  <div class="topbar">
-    <span class="back" data-home>← Back</span>
-    <h2>Angled Branch Cuts (Branch up at θ° to Header)</h2>
-  </div>
+  <div class="topbar"><span class="back" data-home>← Back</span><h2>Lateral Branch Cuts</h2></div>
 
   <div class="panel">
     <label>Header OD (mm)</label>
@@ -243,16 +240,30 @@ if ("serviceWorker" in navigator) {
     <label>Branch ID (mm, optional)</label>
     <input type="number" id="lat-branchID" placeholder="Optional">
 
-    <label>Branch angle to header (degrees)</label>
-    <input type="number" id="lat-angle" value="60">
-    <div class="note">
-      Header vertical, branch also up but tilted at this angle to the header centre line.
-    </div>
+    <label>Angle between branch and header (degrees)</label>
+    <input type="number" id="lat-angle" value="45">
+
+    <label>Centre-to-centre length (mm, optional)</label>
+    <input type="number" id="lat-c2c" placeholder="e.g. 1410">
 
     <label>Number of Divisions</label>
     <input type="number" id="lat-divisions" value="16">
 
     <button id="lat-go">Calculate Cut Points</button>
+
+    <div class="results" style="margin-top:12px">
+      <div class="resbox">
+        <div class="label">Branch Takeoff (top / shortest point)</div>
+        <div class="value" id="lat-takeoff">—</div>
+        <div class="note">Takeoff = (HeaderOD ÷ (2·sinθ)) − (BranchOD ÷ (2·tanθ))</div>
+      </div>
+
+      <div class="resbox">
+        <div class="label">Cut length to top / shortest cope point</div>
+        <div class="value" id="lat-cutlen">—</div>
+        <div class="note">CutLen = C2C − Takeoff (only if C2C entered)</div>
+      </div>
+    </div>
   </div>
 
   <div class="panel" id="lat-results"></div>
@@ -660,78 +671,86 @@ document.getElementById('lat-go').addEventListener('click', ()=>{
   const H_OD = parseFloat(document.getElementById('lat-headerOD').value);
   const B_OD = parseFloat(document.getElementById('lat-branchOD').value);
   const B_ID = parseFloat(document.getElementById('lat-branchID').value);
-  const angleDeg = parseFloat(document.getElementById('lat-angle').value);  // angle between axes
+  const angleDeg = parseFloat(document.getElementById('lat-angle').value);
+  const c2c = parseFloat(document.getElementById('lat-c2c').value);
   const divisions = parseInt(document.getElementById('lat-divisions').value);
 
-  // basic checks
   if ([H_OD, B_OD, angleDeg, divisions].some(v => !isFinite(v))) {
-    alert("Please enter valid numbers for all required fields.");
+    alert("Please enter valid numbers for Header OD, Branch OD, Angle and Divisions.");
+    return;
+  }
+  if (divisions < 4) {
+    alert("Divisions should be 4 or more.");
     return;
   }
 
-  // radii
+  const angleRad = angleDeg * Math.PI / 180;
+
+  // --- TAKEOFF (top/short point) ---
+  // Takeoff = (HeaderOD/(2*sinθ)) - (BranchOD/(2*tanθ))
+  let takeoff = NaN;
+  const s = Math.sin(angleRad);
+  const t = Math.tan(angleRad);
+
+  if (Math.abs(s) > 1e-12 && Math.abs(t) > 1e-12) {
+    takeoff = (H_OD / (2 * s)) - (B_OD / (2 * t));
+  }
+
+  // display takeoff + optional cut length
+  document.getElementById('lat-takeoff').textContent = isFinite(takeoff) ? (takeoff.toFixed(1) + " mm") : "—";
+  if (isFinite(takeoff) && isFinite(c2c)) {
+    document.getElementById('lat-cutlen').textContent = ( (c2c - takeoff).toFixed(1) + " mm" );
+  } else {
+    document.getElementById('lat-cutlen').textContent = "—";
+  }
+
+  // --- EXISTING TABLE LOGIC (unchanged) ---
   const H = H_OD / 2;
   const B = isFinite(B_ID) ? B_ID / 2 : B_OD / 2;
+
   if (B > H) {
     alert("Branch radius is larger than header radius! Check your inputs.");
     return;
   }
 
-  // angle between branch and header axes (in radians)
-  const angleRad = angleDeg * Math.PI / 180;
-  const phiStep  = 360 / divisions;
-
-  // branch circumference + mm per degree (for marking around branch)
+  const phiStep = 360 / divisions;
   const circumference = Math.PI * B_OD;
   const mmPerDeg = circumference / 360;
 
   let html = `
-    <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;flex-wrap:wrap;gap:8px;">
-      <div>
-        <span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br>
-        <span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span>
-      </div>
-      <div>
-        <span style="color:#94a3b8;font-size:13px;">mm per Degree (around branch):</span><br>
-        <span style="color:#7dd3fc;font-size:16px;">${mmPerDeg.toFixed(3)} mm/°</span>
-      </div>
-      <div>
-        <span style="color:#94a3b8;font-size:13px;">Branch angle to header:</span><br>
-        <span style="color:#7dd3fc;font-size:16px;">${angleDeg.toFixed(2)}°</span>
-      </div>
+    <div style="margin-bottom:10px;background:#0f172a;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;">
+      <div><span style="color:#94a3b8;font-size:13px;">Branch Circumference:</span><br><span style="color:#7dd3fc;font-size:16px;">${circumference.toFixed(2)} mm</span></div>
+      <div><span style="color:#94a3b8;font-size:13px;">mm per Degree:</span><br><span style="color:#7dd3fc;font-size:16px;">${mmPerDeg.toFixed(3)} mm/°</span></div>
+      <div><span style="color:#94a3b8;font-size:13px;">Top Takeoff:</span><br><span style="color:#7dd3fc;font-size:16px;">${isFinite(takeoff)?takeoff.toFixed(1):'—'} mm</span></div>
     </div>
   `;
 
   html += '<h3>Cut Table</h3><table><tr><th>Division</th><th>Phi (°)</th><th>Arc @ Phi (mm)</th><th>Cut Height (mm)</th></tr>';
 
   const rows = [];
-
   for (let i = 0; i <= divisions; i++) {
-    // phi = angle around the branch circumference
     const phi = (i === divisions ? 360 : i * phiStep);
     const phiRad = phi * Math.PI / 180;
 
-    // intersection geometry (angled branch to header)
-    const sqrtArg = H*H - Math.pow(B * Math.sin(phiRad), 2);
-    const arcMM   = circumference * (phi / 360);
-    let cut = NaN;
+    const sqrtArg = H * H - Math.pow(B * Math.sin(phiRad), 2);
+    const arcMM = circumference * (phi / 360);
 
-    if (sqrtArg >= 0 && Math.sin(angleRad) !== 0 && Math.tan(angleRad) !== 0) {
-      // same core formula, now clearly interpreted as ANGLE BETWEEN AXES
+    let cut = NaN;
+    if (sqrtArg >= 0 && Math.abs(Math.sin(angleRad)) > 1e-12 && Math.abs(Math.tan(angleRad)) > 1e-12) {
       const part1 = (H - Math.sqrt(sqrtArg)) / Math.sin(angleRad);
       const part2 = B * (1 - Math.cos(phiRad)) / Math.tan(angleRad);
       cut = part1 + part2;
     }
 
-    rows.push({phi, arcMM, cut});
+    rows.push({ phi, arcMM, cut });
   }
 
   rows.forEach((r, idx) => {
     html += `<tr>
-      <td>${idx === 0 ? 0 : idx}</td>
+      <td>${idx===0?0:idx}</td>
       <td>${r.phi.toFixed(2)}</td>
       <td>${r.arcMM.toFixed(2)}</td>
-      <td>${isFinite(r.cut) ? r.cut.toFixed(2) : 'NaN'}</td>
+      <td>${isFinite(r.cut)?r.cut.toFixed(2):'NaN'}</td>
     </tr>`;
   });
 
